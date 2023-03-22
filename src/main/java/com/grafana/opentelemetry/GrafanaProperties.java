@@ -11,6 +11,7 @@ import java.util.Map;
 public class GrafanaProperties {
 
     private String endpoint;
+    private String protocol = "http/protobuf";
     private int instanceID;
     private String apiKey;
     private final Map<String, String> resourceAttributes = new HashMap<>();
@@ -23,6 +24,14 @@ public class GrafanaProperties {
 
     public void setEndpoint(String endpoint) {
         this.endpoint = endpoint;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
     }
 
     public int getInstanceID() {

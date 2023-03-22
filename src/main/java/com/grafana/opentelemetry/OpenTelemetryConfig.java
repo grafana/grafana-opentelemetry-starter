@@ -36,7 +36,7 @@ public class OpenTelemetryConfig {
 
         builder.addPropertiesSupplier(() -> Map.of(
                 "otel.resource.attributes", getResourceAttributes(properties, applicationName),
-                "otel.exporter.otlp.protocol", "http/protobuf",
+                "otel.exporter.otlp.protocol", properties.getProtocol(),
                 "otel.exporter.otlp.endpoint", properties.getEndpoint(),
                 "otel.exporter.otlp.headers", auth,
                 "otel.traces.exporter", exporter,
