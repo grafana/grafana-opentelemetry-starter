@@ -15,15 +15,15 @@ repositories {
 }
 
 dependencies {
-	compileOnly 'org.springframework.boot:spring-boot-starter-actuator'
-	compileOnly 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
 	def otelVersion = dependencyManagement.importedProperties['opentelemetry.version']
-	implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
-	implementation("io.opentelemetry:opentelemetry-exporter-logging:$otelVersion") // only for debug
+	implementation "io.opentelemetry:opentelemetry-exporter-otlp"
+	implementation "io.opentelemetry:opentelemetry-exporter-otlp-logs:$otelVersion-alpha"
+	implementation "io.opentelemetry:opentelemetry-exporter-logging" // only for debug
 	runtimeOnly("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:$otelVersion-alpha")
-	implementation("io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5:$otelVersion-alpha")
-	implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion-alpha")
+	implementation "io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5:$otelVersion-alpha"
+	implementation "io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion-alpha"
 	runtimeOnly 'io.micrometer:micrometer-tracing-bridge-otel'
 }
 
