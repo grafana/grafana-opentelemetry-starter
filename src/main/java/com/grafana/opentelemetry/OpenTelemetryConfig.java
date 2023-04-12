@@ -3,6 +3,7 @@ package com.grafana.opentelemetry;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.instrumentation.micrometer.v1_5.OpenTelemetryMeterRegistry;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdkBuilder;
@@ -27,10 +28,10 @@ public class OpenTelemetryConfig {
     @Bean
     public OpenTelemetry openTelemetry(GrafanaProperties properties,
             @Value("${spring.application.name}") String applicationName) {
-        String userPass = String.format("%s:%s", properties.getInstanceID(), properties.getApiKey());
+        String userPass = String.format("%s:%s", properties.getInstanceId(), properties.getApiKey());
         String auth = String.format("Authorization=Basic %s", Base64.getEncoder().encodeToString(userPass.getBytes()));
 
-        String exporter = properties.isConsoleLogging() ? "logging,otlp" : "otlp";
+        String exporter = properties.isDebug() ? "logging,otlp" : "otlp";
 
         AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder();
 
@@ -48,15 +49,27 @@ public class OpenTelemetryConfig {
     }
 
     private static String getResourceAttributes(GrafanaProperties properties, String applicationName) {
-        Map<String, String> resourceAttributes = properties.getResourceAttributes();
-        if (!resourceAttributes.containsKey(ResourceAttributes.SERVICE_NAME.getKey()) &&
-                    Strings.isNotBlank(applicationName)) {
-            resourceAttributes.put(ResourceAttributes.SERVICE_NAME.getKey(), applicationName);
-        }
+        Map<String, String> resourceAttributes = properties.getGlobalAttributes();
+
+        Package p = OpenTelemetryConfig.class.getPackage();
+        updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_NAME, applicationName, p.getImplementationTitle());
+        updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_VERSION, p.getImplementationVersion());
 
         return resourceAttributes.entrySet().stream()
-                                 .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))
-                                 .collect(Collectors.joining(","));
+                       .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))
+                       .collect(Collectors.joining(","));
     }
 
+    static void updateResourceAttribute(Map<String, String> resourceAttributes,
+            AttributeKey<String> key, String... overrides) {
+
+        if (!resourceAttributes.containsKey(key.getKey())) {
+            for (String value : overrides) {
+                if (Strings.isNotBlank(value)) {
+                    resourceAttributes.put(key.getKey(), value);
+                    return;
+                }
+            }
+        }
+    }
 }
