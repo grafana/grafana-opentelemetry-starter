@@ -28,8 +28,6 @@ public class OpenTelemetryConfig {
     @Bean
     public OpenTelemetry openTelemetry(GrafanaProperties properties,
             @Value("${spring.application.name}") String applicationName) {
-        String userPass = String.format("%s:%s", properties.getInstanceId(), properties.getApiKey());
-        String auth = String.format("Authorization=Basic %s", Base64.getEncoder().encodeToString(userPass.getBytes()));
 
         String exporter = properties.isDebug() ? "logging,otlp" : "otlp";
 
@@ -39,13 +37,22 @@ public class OpenTelemetryConfig {
                 "otel.resource.attributes", getResourceAttributes(properties, applicationName),
                 "otel.exporter.otlp.protocol", properties.getProtocol(),
                 "otel.exporter.otlp.endpoint", properties.getEndpoint(),
-                "otel.exporter.otlp.headers", auth,
+                "otel.exporter.otlp.headers", getHeaders(properties),
                 "otel.traces.exporter", exporter,
                 "otel.metrics.exporter", exporter,
                 "otel.logs.exporter", exporter
         ));
 
         return builder.build().getOpenTelemetrySdk();
+    }
+
+    private static String getHeaders(GrafanaProperties properties) {
+        String apiKey = properties.getApiKey();
+        if (Strings.isBlank(apiKey)) {
+            return "";
+        }
+        String userPass = String.format("%s:%s", properties.getInstanceId(), apiKey);
+        return String.format("Authorization=Basic %s", Base64.getEncoder().encodeToString(userPass.getBytes()));
     }
 
     private static String getResourceAttributes(GrafanaProperties properties, String applicationName) {
