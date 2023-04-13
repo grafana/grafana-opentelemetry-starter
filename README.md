@@ -18,9 +18,9 @@ spring:
 grafana:
   otlp:
     endpoint: https://otlp-gateway-<Grafana region>.grafana.net/otlp
-    instanceID: <Grafana Instance ID>
+    instanceId: <Grafana Instance ID>
     apiKey: <Grafana API key>
-    consoleLogging: true
+    debug: true
     resourceAttributes:
       k8s.pod.name: nevla
 ```

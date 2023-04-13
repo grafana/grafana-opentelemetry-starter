@@ -1,17 +1,19 @@
 plugins {
-	id 'java'
+    id 'java'
     id 'maven-publish'
-	id 'org.springframework.boot' version '3.0.4'
-	id 'io.spring.dependency-management' version '1.1.0'
+    id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
+    id 'signing'
+    id 'org.springframework.boot' version '3.0.4'
+    id 'io.spring.dependency-management' version '1.1.0'
 }
 
 group = 'com.grafana'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1'
 sourceCompatibility = '17'
 
 repositories {
-	mavenCentral()
-	mavenLocal()
+    mavenCentral()
+    mavenLocal()
 }
 
 test {
@@ -19,26 +21,80 @@ test {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
-	def otelVersion = dependencyManagement.importedProperties['opentelemetry.version']
-	implementation "io.opentelemetry:opentelemetry-exporter-otlp"
-	implementation "io.opentelemetry:opentelemetry-exporter-otlp-logs:$otelVersion-alpha"
-	implementation "io.opentelemetry:opentelemetry-exporter-logging" // only for debug
-	runtimeOnly("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:$otelVersion-alpha")
-	implementation "io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5:$otelVersion-alpha"
-	implementation "io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion-alpha"
-	runtimeOnly 'io.micrometer:micrometer-tracing-bridge-otel'
+    def otelVersion = dependencyManagement.importedProperties['opentelemetry.version']
+    implementation "io.opentelemetry:opentelemetry-exporter-otlp"
+    implementation "io.opentelemetry:opentelemetry-exporter-otlp-logs:$otelVersion-alpha"
+    implementation "io.opentelemetry:opentelemetry-exporter-logging" // only for debug
+    runtimeOnly("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:$otelVersion-alpha")
+    implementation "io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5:$otelVersion-alpha"
+    implementation "io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion-alpha"
+    runtimeOnly 'io.micrometer:micrometer-tracing-bridge-otel'
 
-	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
-	testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+}
+
+tasks.register('javadocJar', Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+tasks.register('sourcesJar', Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
 }
 
 publishing {
     publications {
-        maven(MavenPublication) {
-            from components.java
+        mavenJava(MavenPublication) {
+            from(components.java)
+
+            pom {
+                description = 'Spring boot starter to use Metrics, Traces, and Logs with OpenTelemetry in Grafana Cloud or Grafana OSS stack'
+                url = 'https://github.com/grafana/grafana-opentelemetry-starter'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = "zeitlinger"
+                        name = "Gregor Zeitlinger"
+                        email = "gregor.zeitlinger@grafana.com"
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git@github.com:grafana/grafana-opentelemetry-starter.git'
+                    developerConnection = 'scm:git:git@github.com:grafana/grafana-opentelemetry-starter.git'
+                    url = "https://github.com/grafana/grafana-opentelemetry-starter"
+                }
+            }
         }
     }
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+
+            username = ossrhUsername
+            password = ossrhPassword
+        }
+    }
+}
+
+signing {
+    useGpgCmd()
+    sign publishing.publications.mavenJava
 }
