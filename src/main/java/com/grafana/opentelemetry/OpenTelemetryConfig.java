@@ -15,6 +15,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Base64;
 import java.util.Map;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -27,7 +29,7 @@ public class OpenTelemetryConfig {
 
     @Bean
     public OpenTelemetry openTelemetry(GrafanaProperties properties,
-            @Value("${spring.application.name}") String applicationName) {
+            @Value("${spring.application.name:#{null}}") String applicationName) {
 
         String exporter = properties.isDebug() ? "logging,otlp" : "otlp";
 
@@ -58,9 +60,28 @@ public class OpenTelemetryConfig {
     private static String getResourceAttributes(GrafanaProperties properties, String applicationName) {
         Map<String, String> resourceAttributes = properties.getGlobalAttributes();
 
-        Package p = OpenTelemetryConfig.class.getPackage();
-        updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_NAME, applicationName, p.getImplementationTitle());
-        updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_VERSION, p.getImplementationVersion());
+        String manifestApplicationName = null;
+        String manifestApplicationVersion = null;
+        try {
+            Manifest mf = new Manifest();
+            mf.read(ClassLoader.getSystemResourceAsStream("META-INF/MANIFEST.MF"));
+            Attributes atts = mf.getMainAttributes();
+
+            Object n = atts.getValue("Implementation-Title");
+            if (n != null) {
+                manifestApplicationName = n.toString();
+            }
+            Object v = atts.getValue("Implementation-Version");
+            if (v != null) {
+                manifestApplicationVersion = v.toString();
+            }
+        } catch (Exception e) {
+            // ignore error reading manifest
+        }
+
+        updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_NAME, applicationName,
+                manifestApplicationName);
+        updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_VERSION, manifestApplicationVersion);
 
         return resourceAttributes.entrySet().stream()
                        .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))

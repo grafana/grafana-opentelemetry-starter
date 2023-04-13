@@ -5,7 +5,7 @@ This is only an experiment so far.
 
 build.gradle:
 ```groovy
-implementation 'com.grafana:grafana-opentelemetry-starter:0.0.2'
+implementation 'com.grafana:grafana-opentelemetry-starter:0.0.4'
 ```
 
 application.yaml
@@ -21,7 +21,7 @@ grafana:
     instanceId: <Grafana Instance ID>
     apiKey: <Grafana API key>
     debug: true
-    resourceAttributes:
+    globalAttributes:
       k8s.pod.name: nevla
 ```
 

@@ -12,7 +12,6 @@ targetCompatibility = JavaVersion.VERSION_17
 
 group = "com.grafana"
 version = project.properties['grafanaOtelStarterVersion']
-def grafanaOtelStarterVersion = version
 
 repositories {
     mavenCentral()
@@ -49,10 +48,8 @@ dependencies {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId = 'com.grafana'
-            artifactId = 'grafana-opentelemetry-starter'
-            version = grafanaOtelStarterVersion
-            artifacts = [ javadocJar, sourcesJar ]
+            from components.java
+
             pom {
                 name  = 'Grafana OpenTelemetry Starter'
                 description = 'Spring boot starter to use Metrics, Traces, and Logs with OpenTelemetry in Grafana Cloud or Grafana OSS stack'
