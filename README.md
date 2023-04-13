@@ -5,7 +5,7 @@ This is only an experiment so far.
 
 build.gradle:
 ```groovy
-implementation 'com.grafana:grafana-opentelemetry-starter:0.0.4'
+implementation 'com.grafana:grafana-opentelemetry-starter:0.0.5'
 ```
 
 application.yaml

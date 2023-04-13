@@ -34,3 +34,5 @@ export SIGNING_PASSWORD=<passphrase of gpg key>
 
 `./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository`
 ```
+
+or `./gradlew publishToMavenLocal` to deploy locally only.
