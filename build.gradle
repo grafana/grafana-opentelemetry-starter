@@ -7,17 +7,26 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.0'
 }
 
-group = 'com.grafana'
-version = '0.0.1'
-sourceCompatibility = '17'
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+group = "com.grafana"
+version = project.properties['grafanaOtelStarterVersion']
+def grafanaOtelStarterVersion = version
 
 repositories {
     mavenCentral()
-    mavenLocal()
+    maven {
+        url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots")
+        mavenContent {
+            snapshotsOnly()
+        }
+    }
 }
 
-test {
-    useJUnitPlatform()
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 dependencies {
@@ -37,26 +46,15 @@ dependencies {
     testImplementation "org.springframework.boot:spring-boot-starter-test"
 }
 
-tasks.register('javadocJar', Jar) {
-    classifier = 'javadoc'
-    from javadoc
-}
-
-tasks.register('sourcesJar', Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-artifacts {
-    archives javadocJar, sourcesJar
-}
-
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            from(components.java)
-
+            groupId = 'com.grafana'
+            artifactId = 'grafana-opentelemetry-starter'
+            version = grafanaOtelStarterVersion
+            artifacts = [ javadocJar, sourcesJar ]
             pom {
+                name  = 'Grafana OpenTelemetry Starter'
                 description = 'Spring boot starter to use Metrics, Traces, and Logs with OpenTelemetry in Grafana Cloud or Grafana OSS stack'
                 url = 'https://github.com/grafana/grafana-opentelemetry-starter'
                 licenses {
@@ -73,10 +71,21 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:git@github.com:grafana/grafana-opentelemetry-starter.git'
-                    developerConnection = 'scm:git:git@github.com:grafana/grafana-opentelemetry-starter.git'
-                    url = "https://github.com/grafana/grafana-opentelemetry-starter"
+                    connection = 'scm:git:git://github.com/grafana/grafana-opentelemetry-starter.git'
+                    developerConnection = 'scm:git:ssh://github.com/grafana/grafana-opentelemetry-starter.git'
+                    url = 'https://github.com/grafana/grafana-opentelemetry-starter'
                 }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'OSSRH'
+            url = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+
+            credentials {
+                username = System.getenv('OSSRH_USERNAME')
+                password = System.getenv('OSSRH_PASSWORD')
             }
         }
     }
@@ -88,13 +97,13 @@ nexusPublishing {
             nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
             snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
 
-            username = ossrhUsername
-            password = ossrhPassword
+            username = System.getenv("OSSRH_USERNAME")
+            password = System.getenv("OSSRH_PASSWORD")
         }
     }
 }
 
 signing {
-    useGpgCmd()
     sign publishing.publications.mavenJava
+    useInMemoryPgpKeys(System.getenv('SIGNING_KEY'), System.getenv('SIGNING_PASSWORD'))
 }
