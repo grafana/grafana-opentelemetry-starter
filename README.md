@@ -1,11 +1,10 @@
-# Warning
-This is only an experiment so far.
+**Status:** Experimental
 
 # Installation
 
 build.gradle:
 ```groovy
-implementation 'com.grafana:grafana-opentelemetry-starter:0.0.5'
+implementation 'com.grafana:grafana-opentelemetry-starter:0.0.6'
 ```
 
 application.yaml

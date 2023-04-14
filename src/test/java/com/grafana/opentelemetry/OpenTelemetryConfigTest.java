@@ -35,6 +35,7 @@ class OpenTelemetryConfigTest {
                 Arguments.of("explicit name is kept", "explicit", "explicit", new String[]{"ignored"}),
                 Arguments.of("only override is used", "override", null, new String[]{"override"}),
                 Arguments.of("first non-blank override is used", "override", null, new String[]{" ", "override"}),
+                Arguments.of("first non-empty override is used", "override", null, new String[]{"", "override"}),
                 Arguments.of("first non-null override is used", "override", null, new String[]{null, "override"}),
                 Arguments.of("no value found", null, null, new String[]{" ", null})
         );
