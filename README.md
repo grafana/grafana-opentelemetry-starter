@@ -49,31 +49,31 @@ logback-spring.xml:
 </configuration>
 ```
 
-# Documentation
+# Properties
 
-## `private String endpoint`
+## endpoint
 
 The grafana cloud OTLP gateway endpoint in the form of `https://otlp-gateway-<Zone>.grafana.net/otlp`
 
 The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
 
-## `private String protocol = "http`
+## protocol
 
 The protocol used to send OTLP data. Can be either `http/protobuf` (which is the default) or `grpc`.
 
-## `private int instanceId`
+## instanceId
 
 The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
 
 Leave this field empty when using the Grafana OSS stack.
 
-## `private String apiKey`
+## apiKey
 
 Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com. The role should be "MetricsPublisher"
 
 Leave this field empty when using the Grafana OSS stack.
 
-## `private final Map<String, String> globalAttributes = new HashMap<>()`
+## globalAttributes
 
 Adds global (resource) attributes to metrics, traces and logs.
 
@@ -87,7 +87,7 @@ You can also add the application name and version to MANIFEST.MF, where they wil
 
 In gradle, the application name and version can be set as follows: <pre> bootJar { manifest { attributes('Implementation-Title': 'Demo Application', 'Implementation-Version': version) } } </pre> The environment variables HOST or HOSTNAME will be translated to `service.instance.id`.
 
-## `private boolean debugLogging`
+## debugLogging
 
 Log all metrics, traces, and logs that are created for debugging purposes (in addition to sending them to the backend via OTLP).
 
