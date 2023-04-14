@@ -24,10 +24,10 @@ jobs:
           distribution: 'adopt'
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1.0.5
-      - name: Build Jar
+      - name: Test and build Jar
         uses: gradle/gradle-build-action@v2.3.3
         with:
-          arguments: jar
+          arguments: test jar
   publish:
     needs: [ build ]
     if: always() && (needs.build.result == 'success') && github.repository == 'grafana/grafana-opentelemetry-starter' && github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/')
