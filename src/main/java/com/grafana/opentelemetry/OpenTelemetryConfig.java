@@ -81,6 +81,8 @@ public class OpenTelemetryConfig {
         updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_NAME, applicationName,
                 manifestApplicationName);
         updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_VERSION, manifestApplicationVersion);
+        updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_INSTANCE_ID, System.getenv("HOSTNAME"),
+                System.getenv("HOST"));
 
         return resourceAttributes.entrySet().stream()
                        .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))

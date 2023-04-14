@@ -45,8 +45,10 @@ public class GrafanaProperties {
      * For example, you can add <code>service.version</code> to make it easier to see if a new version of the
      * application is causing a problem.
      * <p>
-     * If you add "spring.application.name" to application.properties, the application name will be copied to
-     * <code>service.name</code>, but you can override <code>service.name</code>.
+     * The attributes <code>service.name</code>, <code>service.version</code>, and <code>service.instance.id</code>
+     * are automatically detected as explained below, but if you set the value manually, it will be respected.
+     * <p>
+     * "spring.application.name" in application.properties will be translated to <code>service.name</code>.
      * <p>
      * You can also add the application name and version to MANIFEST.MF, where they will be copied to
      * <code>service.name</code> and <code>service.version</code> respectively.
@@ -60,6 +62,7 @@ public class GrafanaProperties {
      *     }
      * }
      * </pre>
+     * The environment variables HOST or HOSTNAME will be translated to <code>service.instance.id</code>.
      */
     private final Map<String, String> globalAttributes = new HashMap<>();
 
