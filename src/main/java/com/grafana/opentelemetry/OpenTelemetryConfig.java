@@ -31,7 +31,7 @@ public class OpenTelemetryConfig {
     public OpenTelemetry openTelemetry(GrafanaProperties properties,
             @Value("${spring.application.name:#{null}}") String applicationName) {
 
-        String exporter = properties.isDebug() ? "logging,otlp" : "otlp";
+        String exporters = properties.isDebugLogging() ? "logging,otlp" : "otlp";
 
         AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder();
 
@@ -39,21 +39,20 @@ public class OpenTelemetryConfig {
                 "otel.resource.attributes", getResourceAttributes(properties, applicationName),
                 "otel.exporter.otlp.protocol", properties.getProtocol(),
                 "otel.exporter.otlp.endpoint", properties.getEndpoint(),
-                "otel.exporter.otlp.headers", getHeaders(properties),
-                "otel.traces.exporter", exporter,
-                "otel.metrics.exporter", exporter,
-                "otel.logs.exporter", exporter
+                "otel.exporter.otlp.headers", getBasicAuthHeader(properties.getInstanceId(), properties.getApiKey()),
+                "otel.traces.exporter", exporters,
+                "otel.metrics.exporter", exporters,
+                "otel.logs.exporter", exporters
         ));
 
         return builder.build().getOpenTelemetrySdk();
     }
 
-    private static String getHeaders(GrafanaProperties properties) {
-        String apiKey = properties.getApiKey();
-        if (Strings.isBlank(apiKey)) {
+    static String getBasicAuthHeader(int instanceId, String apiKey) {
+        if (Strings.isBlank(apiKey) || instanceId == 0) {
             return "";
         }
-        String userPass = String.format("%s:%s", properties.getInstanceId(), apiKey);
+        String userPass = String.format("%s:%s", instanceId, apiKey);
         return String.format("Authorization=Basic %s", Base64.getEncoder().encodeToString(userPass.getBytes()));
     }
 

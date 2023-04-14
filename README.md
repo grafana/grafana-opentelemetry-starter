@@ -17,7 +17,7 @@ spring:
 
 grafana:
   otlp:
-    endpoint: https://otlp-gateway-<Grafana region>.grafana.net/otlp
+    endpoint: https://otlp-gateway-<Grafana Zone>.grafana.net/otlp
     instanceId: <Grafana Instance ID>
     apiKey: <Grafana API key>
     debug: true

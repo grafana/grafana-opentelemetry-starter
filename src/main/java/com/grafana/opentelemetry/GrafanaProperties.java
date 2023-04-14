@@ -12,7 +12,9 @@ public class GrafanaProperties {
 
     /**
      * The grafana cloud OTLP gateway endpoint in the form of
-     * <code>https://otlp-gateway-<Grafana region>.grafana.net/otlp</code>
+     * <code>https://otlp-gateway-<Zone>.grafana.net/otlp</code>
+     * <p>
+     * The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
      */
     private String endpoint;
 
@@ -67,7 +69,7 @@ public class GrafanaProperties {
      * <p>
      * This will also send metrics and traces to Loki as an unintended side effect.
      */
-    private boolean debug;
+    private boolean debugLogging;
 
     public String getEndpoint() {
         return endpoint;
@@ -101,12 +103,12 @@ public class GrafanaProperties {
         this.apiKey = apiKey;
     }
 
-    public boolean isDebug() {
-        return debug;
+    public boolean isDebugLogging() {
+        return debugLogging;
     }
 
-    public void setDebug(boolean debug) {
-        this.debug = debug;
+    public void setDebugLogging(boolean debugLogging) {
+        this.debugLogging = debugLogging;
     }
 
     public Map<String, String> getGlobalAttributes() {
