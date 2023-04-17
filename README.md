@@ -16,12 +16,9 @@ spring:
 
 grafana:
   otlp:
-    endpoint: https://otlp-gateway-<Grafana Zone>.grafana.net/otlp
+    zone: <Grafana Zone>
     instanceId: <Grafana Instance ID>
     apiKey: <Grafana API key>
-    debug: true
-    globalAttributes:
-      k8s.pod.name: nevla
 ```
 
 logback-spring.xml:
@@ -50,11 +47,17 @@ logback-spring.xml:
 
 # Properties
 
-## endpoint
-
-The grafana cloud OTLP gateway endpoint in the form of `https://otlp-gateway-<Zone>.grafana.net/otlp`
+## zone
 
 The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
+
+Use `endpoint` instead of `zone` when using the Grafana OSS stack.
+
+## endpoint
+
+When using the Grafana OSS stack, set the endpoint to the grafana agent URL.
+
+Use `zone` instead of `endpoint` when using the Grafana Cloud.
 
 ## protocol
 
@@ -64,13 +67,13 @@ The protocol used to send OTLP data. Can be either `http/protobuf` (which is the
 
 The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
 
-Leave this field empty when using the Grafana OSS stack.
+Leave `instanceId` empty when using the Grafana OSS stack.
 
 ## apiKey
 
 Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com. The role should be "MetricsPublisher"
 
-Leave this field empty when using the Grafana OSS stack.
+Leave `apiKey` empty when using the Grafana OSS stack.
 
 ## globalAttributes
 

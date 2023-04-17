@@ -55,4 +55,17 @@ class OpenTelemetryConfigTest {
                 Arguments.of("instanceId 0", "", "apiKey", 0)
         );
     }
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("endpointCases")
+    void getEndpoint(String name, String expected, String zone, String entpoint) {
+        Assertions.assertThat(OpenTelemetryConfig.getEndpoint(entpoint, zone)).isEqualTo(expected);
+    }
+
+    private static Stream<Arguments> endpointCases() {
+        return Stream.of(
+                Arguments.of("only zone", "https://otlp-gateway-zone.grafana.net/otlp", "zone", ""),
+                Arguments.of("only endpoint", "endpoint", "", "endpoint"),
+                Arguments.of("both", "endpoint", "zone", "endpoint")
+        );
+    }
 }

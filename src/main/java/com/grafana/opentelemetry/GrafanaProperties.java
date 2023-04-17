@@ -11,10 +11,16 @@ import java.util.Map;
 public class GrafanaProperties {
 
     /**
-     * The grafana cloud OTLP gateway endpoint in the form of
-     * <code>https://otlp-gateway-<Zone>.grafana.net/otlp</code>
-     * <p>
      * The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
+     * <p>
+     * Use <code>endpoint</code> instead of <code>zone</code> when using the Grafana OSS stack.
+     */
+    private String zone;
+
+    /**
+     * When using the Grafana OSS stack, set the endpoint to the grafana agent URL.
+     * <p>
+     * Use <code>zone</code> instead of <code>endpoint</code> when using the Grafana Cloud.
      */
     private String endpoint;
 
@@ -27,7 +33,7 @@ public class GrafanaProperties {
     /**
      * The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
      * <p>
-     * Leave this field empty when using the Grafana OSS stack.
+     * Leave <code>instanceId</code> empty when using the Grafana OSS stack.
      */
     private int instanceId;
 
@@ -35,7 +41,7 @@ public class GrafanaProperties {
      * Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com.
      * The role should be "MetricsPublisher"
      * <p>
-     * Leave this field empty when using the Grafana OSS stack.
+     * Leave <code>apiKey</code> empty when using the Grafana OSS stack.
      */
     private String apiKey;
 
@@ -73,6 +79,14 @@ public class GrafanaProperties {
      * This will also send metrics and traces to Loki as an unintended side effect.
      */
     private boolean debugLogging;
+
+    public String getZone() {
+        return zone;
+    }
+
+    public void setZone(String zone) {
+        this.zone = zone;
+    }
 
     public String getEndpoint() {
         return endpoint;

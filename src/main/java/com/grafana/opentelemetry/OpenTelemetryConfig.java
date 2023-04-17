@@ -42,7 +42,7 @@ public class OpenTelemetryConfig {
         builder.addPropertiesSupplier(() -> Map.of(
                 "otel.resource.attributes", getResourceAttributes(properties, applicationName),
                 "otel.exporter.otlp.protocol", properties.getProtocol(),
-                "otel.exporter.otlp.endpoint", properties.getEndpoint(),
+                "otel.exporter.otlp.endpoint", getEndpoint(properties.getEndpoint(), properties.getZone()),
                 "otel.exporter.otlp.headers", getBasicAuthHeader(properties.getInstanceId(), properties.getApiKey()),
                 "otel.traces.exporter", exporters,
                 "otel.metrics.exporter", exporters,
@@ -55,6 +55,17 @@ public class OpenTelemetryConfig {
             logger.warn("unable to crate OpenTelemetry instance", e);
             return OpenTelemetry.noop();
         }
+    }
+
+    static String getEndpoint(String endpoint, String zone) {
+        if (Strings.isNotBlank(endpoint)) {
+            return endpoint;
+        }
+        if (Strings.isBlank(zone)) {
+            logger.warn("please specify either grafana.otlp.endpoint or grafana.otlp.zone");
+            return "";
+        }
+        return String.format("https://otlp-gateway-%s.grafana.net/otlp", zone);
     }
 
     static String getBasicAuthHeader(int instanceId, String apiKey) {
