@@ -9,6 +9,8 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdkBuilder;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import org.apache.logging.log4j.util.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +23,8 @@ import java.util.stream.Collectors;
 
 @Configuration
 public class OpenTelemetryConfig {
+
+    private static final Logger logger = LoggerFactory.getLogger(OpenTelemetryConfig.class);
 
     @Bean
     public MeterRegistry openTelemetryMeterRegistry(OpenTelemetry openTelemetry, Clock clock) {
@@ -45,7 +49,12 @@ public class OpenTelemetryConfig {
                 "otel.logs.exporter", exporters
         ));
 
-        return builder.build().getOpenTelemetrySdk();
+        try {
+            return builder.build().getOpenTelemetrySdk();
+        } catch (Exception e) {
+            logger.warn("unable to crate OpenTelemetry instance", e);
+            return OpenTelemetry.noop();
+        }
     }
 
     static String getBasicAuthHeader(int instanceId, String apiKey) {
