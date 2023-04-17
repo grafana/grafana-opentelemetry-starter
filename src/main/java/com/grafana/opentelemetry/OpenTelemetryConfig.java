@@ -65,9 +65,11 @@ public class OpenTelemetryConfig {
                        .stream()
                        .collect(Collectors.toMap(
                                Map.Entry::getKey,
-                               e -> e.getKey().equals("otel.exporter.otlp.headers") ?
-                                            e.getValue().substring(0, 24) + "..." :
-                                            e.getValue()));
+                               e -> {
+                                   String v = e.getValue();
+                                   return e.getKey().equals("otel.exporter.otlp.headers") && v.length() > 24 ?
+                                                  v.substring(0, 24) + "..." : v;
+                               }));
     }
 
     static String getEndpoint(String endpoint, String zone) {

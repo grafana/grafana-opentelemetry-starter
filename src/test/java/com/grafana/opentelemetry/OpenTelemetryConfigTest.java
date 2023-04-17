@@ -2,7 +2,6 @@ package com.grafana.opentelemetry;
 
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -59,8 +58,8 @@ class OpenTelemetryConfigTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("endpointCases")
-    void getEndpoint(String name, String expected, String zone, String entpoint) {
-        Assertions.assertThat(OpenTelemetryConfig.getEndpoint(entpoint, zone)).isEqualTo(expected);
+    void getEndpoint(String name, String expected, String zone, String endpoint) {
+        Assertions.assertThat(OpenTelemetryConfig.getEndpoint(endpoint, zone)).isEqualTo(expected);
     }
 
     private static Stream<Arguments> endpointCases() {
@@ -71,14 +70,35 @@ class OpenTelemetryConfigTest {
         );
     }
 
-    @Test
-    void maskAuthHeader() {
-        Map<String, String> map = OpenTelemetryConfig.maskAuthHeader(Map.of(
-                "foo", "bar",
-                "otel.exporter.otlp.headers", "Authorization=Basic NTUzMzg2OmV5SnJJam9pW"));
-        Assertions.assertThat(map).containsExactlyInAnyOrderEntriesOf(Map.of(
-                "foo", "bar",
-                "otel.exporter.otlp.headers", "Authorization=Basic NTUz..."));
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("maskCases")
+    void maskAuthHeader(String name, Map<String, String> expected, Map<String, String> given) {
+        Map<String, String> map = OpenTelemetryConfig.maskAuthHeader(given);
+        Assertions.assertThat(map).containsExactlyInAnyOrderEntriesOf(expected);
+    }
+
+    private static Stream<Arguments> maskCases() {
+        return Stream.of(
+                Arguments.of("masked",
+                        Map.of(
+                                "foo", "bar",
+                                "otel.exporter.otlp.headers", "Authorization=Basic NTUz..."),
+                        Map.of(
+                                "foo", "bar",
+                                "otel.exporter.otlp.headers", "Authorization=Basic NTUzMzg2OmV5SnJJam9pW")),
+                Arguments.of("short auth header",
+                        Map.of(
+                                "foo", "bar",
+                                "otel.exporter.otlp.headers", ""),
+                        Map.of(
+                                "foo", "bar",
+                                "otel.exporter.otlp.headers", "")),
+                Arguments.of("no auth header",
+                        Map.of(
+                                "foo", "bar"),
+                        Map.of(
+                                "foo", "bar"))
+        );
     }
 
 }
