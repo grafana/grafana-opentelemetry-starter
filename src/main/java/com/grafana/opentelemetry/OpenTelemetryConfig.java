@@ -3,6 +3,7 @@ package com.grafana.opentelemetry;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.instrumentation.micrometer.v1_5.OpenTelemetryMeterRegistry;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdkBuilder;
@@ -14,6 +15,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Base64;
 import java.util.Map;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -26,11 +29,9 @@ public class OpenTelemetryConfig {
 
     @Bean
     public OpenTelemetry openTelemetry(GrafanaProperties properties,
-            @Value("${spring.application.name}") String applicationName) {
-        String userPass = String.format("%s:%s", properties.getInstanceID(), properties.getApiKey());
-        String auth = String.format("Authorization=Basic %s", Base64.getEncoder().encodeToString(userPass.getBytes()));
+            @Value("${spring.application.name:#{null}}") String applicationName) {
 
-        String exporter = properties.isConsoleLogging() ? "logging,otlp" : "otlp";
+        String exporters = properties.isDebugLogging() ? "logging,otlp" : "otlp";
 
         AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder();
 
@@ -38,25 +39,66 @@ public class OpenTelemetryConfig {
                 "otel.resource.attributes", getResourceAttributes(properties, applicationName),
                 "otel.exporter.otlp.protocol", properties.getProtocol(),
                 "otel.exporter.otlp.endpoint", properties.getEndpoint(),
-                "otel.exporter.otlp.headers", auth,
-                "otel.traces.exporter", exporter,
-                "otel.metrics.exporter", exporter,
-                "otel.logs.exporter", exporter
+                "otel.exporter.otlp.headers", getBasicAuthHeader(properties.getInstanceId(), properties.getApiKey()),
+                "otel.traces.exporter", exporters,
+                "otel.metrics.exporter", exporters,
+                "otel.logs.exporter", exporters
         ));
 
         return builder.build().getOpenTelemetrySdk();
     }
 
-    private static String getResourceAttributes(GrafanaProperties properties, String applicationName) {
-        Map<String, String> resourceAttributes = properties.getResourceAttributes();
-        if (!resourceAttributes.containsKey(ResourceAttributes.SERVICE_NAME.getKey()) &&
-                    Strings.isNotBlank(applicationName)) {
-            resourceAttributes.put(ResourceAttributes.SERVICE_NAME.getKey(), applicationName);
+    static String getBasicAuthHeader(int instanceId, String apiKey) {
+        if (Strings.isBlank(apiKey) || instanceId == 0) {
+            return "";
         }
-
-        return resourceAttributes.entrySet().stream()
-                                 .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))
-                                 .collect(Collectors.joining(","));
+        String userPass = String.format("%s:%s", instanceId, apiKey);
+        return String.format("Authorization=Basic %s", Base64.getEncoder().encodeToString(userPass.getBytes()));
     }
 
+    private static String getResourceAttributes(GrafanaProperties properties, String applicationName) {
+        Map<String, String> resourceAttributes = properties.getGlobalAttributes();
+
+        String manifestApplicationName = null;
+        String manifestApplicationVersion = null;
+        try {
+            Manifest mf = new Manifest();
+            mf.read(ClassLoader.getSystemResourceAsStream("META-INF/MANIFEST.MF"));
+            Attributes atts = mf.getMainAttributes();
+
+            Object n = atts.getValue("Implementation-Title");
+            if (n != null) {
+                manifestApplicationName = n.toString();
+            }
+            Object v = atts.getValue("Implementation-Version");
+            if (v != null) {
+                manifestApplicationVersion = v.toString();
+            }
+        } catch (Exception e) {
+            // ignore error reading manifest
+        }
+
+        updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_NAME, applicationName,
+                manifestApplicationName);
+        updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_VERSION, manifestApplicationVersion);
+        updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_INSTANCE_ID, System.getenv("HOSTNAME"),
+                System.getenv("HOST"));
+
+        return resourceAttributes.entrySet().stream()
+                       .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))
+                       .collect(Collectors.joining(","));
+    }
+
+    static void updateResourceAttribute(Map<String, String> resourceAttributes,
+            AttributeKey<String> key, String... overrides) {
+
+        if (!resourceAttributes.containsKey(key.getKey())) {
+            for (String value : overrides) {
+                if (Strings.isNotBlank(value)) {
+                    resourceAttributes.put(key.getKey(), value);
+                    return;
+                }
+            }
+        }
+    }
 }

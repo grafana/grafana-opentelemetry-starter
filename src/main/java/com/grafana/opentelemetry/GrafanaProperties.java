@@ -10,13 +10,69 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "grafana.otlp")
 public class GrafanaProperties {
 
+    /**
+     * The grafana cloud OTLP gateway endpoint in the form of
+     * <code>https://otlp-gateway-<Zone>.grafana.net/otlp</code>
+     * <p>
+     * The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
+     */
     private String endpoint;
-    private String protocol = "http/protobuf";
-    private int instanceID;
-    private String apiKey;
-    private final Map<String, String> resourceAttributes = new HashMap<>();
 
-    private boolean consoleLogging;
+    /**
+     * The protocol used to send OTLP data. Can be either <code>http/protobuf</code> (which is the default)
+     * or <code>grpc</code>.
+     */
+    private String protocol = "http/protobuf";
+
+    /**
+     * The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
+     * <p>
+     * Leave this field empty when using the Grafana OSS stack.
+     */
+    private int instanceId;
+
+    /**
+     * Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com.
+     * The role should be "MetricsPublisher"
+     * <p>
+     * Leave this field empty when using the Grafana OSS stack.
+     */
+    private String apiKey;
+
+    /**
+     * Adds global (resource) attributes to metrics, traces and logs.
+     * <p>
+     * For example, you can add <code>service.version</code> to make it easier to see if a new version of the
+     * application is causing a problem.
+     * <p>
+     * The attributes <code>service.name</code>, <code>service.version</code>, and <code>service.instance.id</code>
+     * are automatically detected as explained below, but if you set the value manually, it will be respected.
+     * <p>
+     * "spring.application.name" in application.properties will be translated to <code>service.name</code>.
+     * <p>
+     * You can also add the application name and version to MANIFEST.MF, where they will be copied to
+     * <code>service.name</code> and <code>service.version</code> respectively.
+     * <p>
+     * In gradle, the application name and version can be set as follows:
+     * <pre>
+     * bootJar {
+     *     manifest {
+     *         attributes('Implementation-Title':   'Demo Application',
+     *                    'Implementation-Version': version)
+     *     }
+     * }
+     * </pre>
+     * The environment variables HOST or HOSTNAME will be translated to <code>service.instance.id</code>.
+     */
+    private final Map<String, String> globalAttributes = new HashMap<>();
+
+    /**
+     * Log all metrics, traces, and logs that are created for debugging purposes
+     * (in addition to sending them to the backend via OTLP).
+     * <p>
+     * This will also send metrics and traces to Loki as an unintended side effect.
+     */
+    private boolean debugLogging;
 
     public String getEndpoint() {
         return endpoint;
@@ -34,12 +90,12 @@ public class GrafanaProperties {
         this.protocol = protocol;
     }
 
-    public int getInstanceID() {
-        return instanceID;
+    public int getInstanceId() {
+        return instanceId;
     }
 
-    public void setInstanceID(int instanceID) {
-        this.instanceID = instanceID;
+    public void setInstanceId(int instanceId) {
+        this.instanceId = instanceId;
     }
 
     public String getApiKey() {
@@ -50,15 +106,15 @@ public class GrafanaProperties {
         this.apiKey = apiKey;
     }
 
-    public boolean isConsoleLogging() {
-        return consoleLogging;
+    public boolean isDebugLogging() {
+        return debugLogging;
     }
 
-    public void setConsoleLogging(boolean consoleLogging) {
-        this.consoleLogging = consoleLogging;
+    public void setDebugLogging(boolean debugLogging) {
+        this.debugLogging = debugLogging;
     }
 
-    public Map<String, String> getResourceAttributes() {
-        return resourceAttributes;
+    public Map<String, String> getGlobalAttributes() {
+        return globalAttributes;
     }
 }
