@@ -39,7 +39,7 @@ public class OpenTelemetryConfig {
 
         AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder();
 
-        builder.addPropertiesSupplier(() -> Map.of(
+        Map<String, String> configProperties = Map.of(
                 "otel.resource.attributes", getResourceAttributes(properties, applicationName),
                 "otel.exporter.otlp.protocol", properties.getProtocol(),
                 "otel.exporter.otlp.endpoint", getEndpoint(properties.getEndpoint(), properties.getZone()),
@@ -47,7 +47,10 @@ public class OpenTelemetryConfig {
                 "otel.traces.exporter", exporters,
                 "otel.metrics.exporter", exporters,
                 "otel.logs.exporter", exporters
-        ));
+        );
+        builder.addPropertiesSupplier(() -> configProperties);
+
+        logger.info("using config properties: {}", maskAuthHeader(configProperties));
 
         try {
             return builder.build().getOpenTelemetrySdk();
@@ -55,6 +58,16 @@ public class OpenTelemetryConfig {
             logger.warn("unable to crate OpenTelemetry instance", e);
             return OpenTelemetry.noop();
         }
+    }
+
+    static Map<String, String> maskAuthHeader(Map<String, String> configProperties) {
+        return configProperties.entrySet()
+                       .stream()
+                       .collect(Collectors.toMap(
+                               Map.Entry::getKey,
+                               e -> e.getKey().equals("otel.exporter.otlp.headers") ?
+                                            e.getValue().substring(0, 24) + "..." :
+                                            e.getValue()));
     }
 
     static String getEndpoint(String endpoint, String zone) {

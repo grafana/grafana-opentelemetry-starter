@@ -2,6 +2,7 @@ package com.grafana.opentelemetry;
 
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -32,12 +33,12 @@ class OpenTelemetryConfigTest {
 
     private static Stream<Arguments> overrideCases() {
         return Stream.of(
-                Arguments.of("explicit name is kept", "explicit", "explicit", new String[]{"ignored"}),
-                Arguments.of("only override is used", "override", null, new String[]{"override"}),
-                Arguments.of("first non-blank override is used", "override", null, new String[]{" ", "override"}),
-                Arguments.of("first non-empty override is used", "override", null, new String[]{"", "override"}),
-                Arguments.of("first non-null override is used", "override", null, new String[]{null, "override"}),
-                Arguments.of("no value found", null, null, new String[]{" ", null})
+                Arguments.of("explicit name is kept", "explicit", "explicit", new String[] { "ignored" }),
+                Arguments.of("only override is used", "override", null, new String[] { "override" }),
+                Arguments.of("first non-blank override is used", "override", null, new String[] { " ", "override" }),
+                Arguments.of("first non-empty override is used", "override", null, new String[] { "", "override" }),
+                Arguments.of("first non-null override is used", "override", null, new String[] { null, "override" }),
+                Arguments.of("no value found", null, null, new String[] { " ", null })
         );
     }
 
@@ -55,6 +56,7 @@ class OpenTelemetryConfigTest {
                 Arguments.of("instanceId 0", "", "apiKey", 0)
         );
     }
+
     @ParameterizedTest(name = "{0}")
     @MethodSource("endpointCases")
     void getEndpoint(String name, String expected, String zone, String entpoint) {
@@ -68,4 +70,15 @@ class OpenTelemetryConfigTest {
                 Arguments.of("both", "endpoint", "zone", "endpoint")
         );
     }
+
+    @Test
+    void maskAuthHeader() {
+        Map<String, String> map = OpenTelemetryConfig.maskAuthHeader(Map.of(
+                "foo", "bar",
+                "otel.exporter.otlp.headers", "Authorization=Basic NTUzMzg2OmV5SnJJam9pW"));
+        Assertions.assertThat(map).containsExactlyInAnyOrderEntriesOf(Map.of(
+                "foo", "bar",
+                "otel.exporter.otlp.headers", "Authorization=Basic NTUz..."));
+    }
+
 }
