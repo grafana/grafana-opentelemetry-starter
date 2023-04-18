@@ -32,12 +32,12 @@ class OpenTelemetryConfigTest {
 
     private static Stream<Arguments> overrideCases() {
         return Stream.of(
-                Arguments.of("explicit name is kept", "explicit", "explicit", new String[]{"ignored"}),
-                Arguments.of("only override is used", "override", null, new String[]{"override"}),
-                Arguments.of("first non-blank override is used", "override", null, new String[]{" ", "override"}),
-                Arguments.of("first non-empty override is used", "override", null, new String[]{"", "override"}),
-                Arguments.of("first non-null override is used", "override", null, new String[]{null, "override"}),
-                Arguments.of("no value found", null, null, new String[]{" ", null})
+                Arguments.of("explicit name is kept", "explicit", "explicit", new String[] { "ignored" }),
+                Arguments.of("only override is used", "override", null, new String[] { "override" }),
+                Arguments.of("first non-blank override is used", "override", null, new String[] { " ", "override" }),
+                Arguments.of("first non-empty override is used", "override", null, new String[] { "", "override" }),
+                Arguments.of("first non-null override is used", "override", null, new String[] { null, "override" }),
+                Arguments.of("no value found", null, null, new String[] { " ", null })
         );
     }
 
@@ -55,4 +55,50 @@ class OpenTelemetryConfigTest {
                 Arguments.of("instanceId 0", "", "apiKey", 0)
         );
     }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("endpointCases")
+    void getEndpoint(String name, String expected, String zone, String endpoint) {
+        Assertions.assertThat(OpenTelemetryConfig.getEndpoint(endpoint, zone)).isEqualTo(expected);
+    }
+
+    private static Stream<Arguments> endpointCases() {
+        return Stream.of(
+                Arguments.of("only zone", "https://otlp-gateway-zone.grafana.net/otlp", "zone", ""),
+                Arguments.of("only endpoint", "endpoint", "", "endpoint"),
+                Arguments.of("both", "endpoint", "zone", "endpoint")
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("maskCases")
+    void maskAuthHeader(String name, Map<String, String> expected, Map<String, String> given) {
+        Map<String, String> map = OpenTelemetryConfig.maskAuthHeader(given);
+        Assertions.assertThat(map).containsExactlyInAnyOrderEntriesOf(expected);
+    }
+
+    private static Stream<Arguments> maskCases() {
+        return Stream.of(
+                Arguments.of("masked",
+                        Map.of(
+                                "foo", "bar",
+                                OpenTelemetryConfig.OTLP_HEADERS, "Authorization=Basic NTUz..."),
+                        Map.of(
+                                "foo", "bar",
+                                OpenTelemetryConfig.OTLP_HEADERS, "Authorization=Basic NTUzMzg2OmV5SnJJam9pW")),
+                Arguments.of("short auth header",
+                        Map.of(
+                                "foo", "bar",
+                                OpenTelemetryConfig.OTLP_HEADERS, ""),
+                        Map.of(
+                                "foo", "bar",
+                                OpenTelemetryConfig.OTLP_HEADERS, "")),
+                Arguments.of("no auth header",
+                        Map.of(
+                                "foo", "bar"),
+                        Map.of(
+                                "foo", "bar"))
+        );
+    }
+
 }

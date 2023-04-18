@@ -9,6 +9,8 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdkBuilder;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import org.apache.logging.log4j.util.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +23,10 @@ import java.util.stream.Collectors;
 
 @Configuration
 public class OpenTelemetryConfig {
+
+    private static final Logger logger = LoggerFactory.getLogger(OpenTelemetryConfig.class);
+
+    public static final String OTLP_HEADERS = "otel.exporter.otlp.headers";
 
     @Bean
     public MeterRegistry openTelemetryMeterRegistry(OpenTelemetry openTelemetry, Clock clock) {
@@ -35,17 +41,49 @@ public class OpenTelemetryConfig {
 
         AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder();
 
-        builder.addPropertiesSupplier(() -> Map.of(
+        GrafanaProperties.CloudProperties cloud = properties.getCloud();
+        Map<String, String> configProperties = Map.of(
                 "otel.resource.attributes", getResourceAttributes(properties, applicationName),
                 "otel.exporter.otlp.protocol", properties.getProtocol(),
-                "otel.exporter.otlp.endpoint", properties.getEndpoint(),
-                "otel.exporter.otlp.headers", getBasicAuthHeader(properties.getInstanceId(), properties.getApiKey()),
+                "otel.exporter.otlp.endpoint", getEndpoint(properties.getOnPrem().getEndpoint(), cloud.getZone()),
+                OTLP_HEADERS, getBasicAuthHeader(cloud.getInstanceId(), cloud.getApiKey()),
                 "otel.traces.exporter", exporters,
                 "otel.metrics.exporter", exporters,
                 "otel.logs.exporter", exporters
-        ));
+        );
+        builder.addPropertiesSupplier(() -> configProperties);
 
-        return builder.build().getOpenTelemetrySdk();
+        logger.info("using config properties: {}", maskAuthHeader(configProperties));
+
+        try {
+            return builder.build().getOpenTelemetrySdk();
+        } catch (Exception e) {
+            logger.warn("unable to create OpenTelemetry instance", e);
+            return OpenTelemetry.noop();
+        }
+    }
+
+    static Map<String, String> maskAuthHeader(Map<String, String> configProperties) {
+        return configProperties.entrySet()
+                       .stream()
+                       .collect(Collectors.toMap(
+                               Map.Entry::getKey,
+                               e -> {
+                                   String v = e.getValue();
+                                   return e.getKey().equals(OTLP_HEADERS) && v.length() > 24 ?
+                                                  v.substring(0, 24) + "..." : v;
+                               }));
+    }
+
+    static String getEndpoint(String endpoint, String zone) {
+        if (Strings.isNotBlank(endpoint)) {
+            return endpoint;
+        }
+        if (Strings.isBlank(zone)) {
+            logger.warn("please specify either grafana.otlp.onprem.endpoint or grafana.otlp.cloud.zone");
+            return "";
+        }
+        return String.format("https://otlp-gateway-%s.grafana.net/otlp", zone);
     }
 
     static String getBasicAuthHeader(int instanceId, String apiKey) {

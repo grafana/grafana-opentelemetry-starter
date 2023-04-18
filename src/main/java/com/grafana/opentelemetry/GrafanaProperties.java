@@ -10,34 +10,16 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "grafana.otlp")
 public class GrafanaProperties {
 
-    /**
-     * The grafana cloud OTLP gateway endpoint in the form of
-     * <code>https://otlp-gateway-<Zone>.grafana.net/otlp</code>
-     * <p>
-     * The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
-     */
-    private String endpoint;
+    private CloudProperties cloud = new CloudProperties();
+
+    private OnPremProperties onPrem = new OnPremProperties();
+
 
     /**
      * The protocol used to send OTLP data. Can be either <code>http/protobuf</code> (which is the default)
      * or <code>grpc</code>.
      */
     private String protocol = "http/protobuf";
-
-    /**
-     * The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
-     * <p>
-     * Leave this field empty when using the Grafana OSS stack.
-     */
-    private int instanceId;
-
-    /**
-     * Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com.
-     * The role should be "MetricsPublisher"
-     * <p>
-     * Leave this field empty when using the Grafana OSS stack.
-     */
-    private String apiKey;
 
     /**
      * Adds global (resource) attributes to metrics, traces and logs.
@@ -74,12 +56,20 @@ public class GrafanaProperties {
      */
     private boolean debugLogging;
 
-    public String getEndpoint() {
-        return endpoint;
+    public CloudProperties getCloud() {
+        return cloud;
     }
 
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
+    public void setCloud(CloudProperties cloud) {
+        this.cloud = cloud;
+    }
+
+    public OnPremProperties getOnPrem() {
+        return onPrem;
+    }
+
+    public void setOnPrem(OnPremProperties onPrem) {
+        this.onPrem = onPrem;
     }
 
     public String getProtocol() {
@@ -88,22 +78,6 @@ public class GrafanaProperties {
 
     public void setProtocol(String protocol) {
         this.protocol = protocol;
-    }
-
-    public int getInstanceId() {
-        return instanceId;
-    }
-
-    public void setInstanceId(int instanceId) {
-        this.instanceId = instanceId;
-    }
-
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
     }
 
     public boolean isDebugLogging() {
@@ -116,5 +90,70 @@ public class GrafanaProperties {
 
     public Map<String, String> getGlobalAttributes() {
         return globalAttributes;
+    }
+
+    public static class CloudProperties {
+        /**
+         * The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
+         * <p>
+         * Use <code>endpoint</code> instead of <code>zone</code> when using the Grafana OSS stack.
+         */
+        private String zone;
+
+        /**
+         * The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
+         * <p>
+         * Leave <code>instanceId</code> empty when using the Grafana OSS stack.
+         */
+        private int instanceId;
+
+        /**
+         * Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com.
+         * The role should be "MetricsPublisher"
+         * <p>
+         * Leave <code>apiKey</code> empty when using the Grafana OSS stack.
+         */
+        private String apiKey;
+
+        public String getZone() {
+            return zone;
+        }
+
+        public void setZone(String zone) {
+            this.zone = zone;
+        }
+
+        public int getInstanceId() {
+            return instanceId;
+        }
+
+        public void setInstanceId(int instanceId) {
+            this.instanceId = instanceId;
+        }
+
+        public String getApiKey() {
+            return apiKey;
+        }
+
+        public void setApiKey(String apiKey) {
+            this.apiKey = apiKey;
+        }
+    }
+
+    public static class OnPremProperties {
+        /**
+         * When using the Grafana OSS stack, set the endpoint to the grafana agent URL.
+         * <p>
+         * Use <code>zone</code> instead of <code>endpoint</code> when using the Grafana Cloud.
+         */
+        private String endpoint;
+
+        public String getEndpoint() {
+            return endpoint;
+        }
+
+        public void setEndpoint(String endpoint) {
+            this.endpoint = endpoint;
+        }
     }
 }

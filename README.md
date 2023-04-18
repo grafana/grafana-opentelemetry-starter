@@ -16,20 +16,19 @@ spring:
 
 grafana:
   otlp:
-    endpoint: https://otlp-gateway-<Grafana Zone>.grafana.net/otlp
-    instanceId: <Grafana Instance ID>
-    apiKey: <Grafana API key>
-    debug: true
-    globalAttributes:
-      k8s.pod.name: nevla
+    cloud:
+      zone: <Grafana Zone>
+      instanceId: <Grafana Instance ID>
+      apiKey: <Grafana API key>
 ```
+
+([Reference](#properties) of all configuration properties)
 
 logback-spring.xml:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-
   <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>
@@ -48,31 +47,30 @@ logback-spring.xml:
 </configuration>
 ```
 
+# Configuration
+
+All configuration properties are described in the [reference](#properties).
+In addition, you can use all system properties or environment variables 
+from the [SDK auto-configuration](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure).
+
+When you start the application, you will also get a log output of the configuration properties as they are translated into SDK properties.
+
+For example, if you set the `spring.application.name` in `application.yaml`,
+you will get the following log output:
+
+```
+11:53:07.724 [main] INFO  c.g.o.OpenTelemetryConfig - using config properties: {otel.exporter.otlp.endpoint=https://otlp-gateway-prod-eu-west-0.grafana.net/otlp, otel.logs.exporter=otlp, otel.traces.exporter=otlp, otel.exporter.otlp.headers=Authorization=Basic NTUz..., otel.exporter.otlp.protocol=http/protobuf, otel.resource.attributes=service.name=demo-app, otel.metrics.exporter=otlp}
+``` 
+
+(The `otel.exporter.otlp.headers` field is abbreviated for security reasons)
+
 # Properties
 
-## endpoint
-
-The grafana cloud OTLP gateway endpoint in the form of `https://otlp-gateway-<Zone>.grafana.net/otlp`
-
-The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
-
-## protocol
+## grafana.otlp.protocol
 
 The protocol used to send OTLP data. Can be either `http/protobuf` (which is the default) or `grpc`.
 
-## instanceId
-
-The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
-
-Leave this field empty when using the Grafana OSS stack.
-
-## apiKey
-
-Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com. The role should be "MetricsPublisher"
-
-Leave this field empty when using the Grafana OSS stack.
-
-## globalAttributes
+## grafana.otlp.globalAttributes
 
 Adds global (resource) attributes to metrics, traces and logs.
 
@@ -86,8 +84,32 @@ You can also add the application name and version to MANIFEST.MF, where they wil
 
 In gradle, the application name and version can be set as follows: <pre> bootJar { manifest { attributes('Implementation-Title': 'Demo Application', 'Implementation-Version': version) } } </pre> The environment variables HOST or HOSTNAME will be translated to `service.instance.id`.
 
-## debugLogging
+## grafana.otlp.debugLogging
 
 Log all metrics, traces, and logs that are created for debugging purposes (in addition to sending them to the backend via OTLP).
 
 This will also send metrics and traces to Loki as an unintended side effect.
+
+## grafana.otlp.cloud.zone
+
+The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
+
+Use `endpoint` instead of `zone` when using the Grafana OSS stack.
+
+## grafana.otlp.cloud.instanceId
+
+The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
+
+Leave `instanceId` empty when using the Grafana OSS stack.
+
+## grafana.otlp.cloud.apiKey
+
+Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com. The role should be "MetricsPublisher"
+
+Leave `apiKey` empty when using the Grafana OSS stack.
+
+## grafana.otlp.onprem.endpoint
+
+When using the Grafana OSS stack, set the endpoint to the grafana agent URL.
+
+Use `zone` instead of `endpoint` when using the Grafana Cloud.

@@ -1,0 +1,4 @@
+grafana:
+  otlp:
+    cloud:
+      zone: prod-eu-west-0
