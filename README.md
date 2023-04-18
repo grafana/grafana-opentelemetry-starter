@@ -22,12 +22,13 @@ grafana:
       apiKey: <Grafana API key>
 ```
 
+([Reference](#properties) of all configuration properties)
+
 logback-spring.xml:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-
   <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>
@@ -45,6 +46,23 @@ logback-spring.xml:
   </root>
 </configuration>
 ```
+
+# Configuration
+
+All configuration properties are described in the [reference](#properties).
+In addition, you can use all system properties or environment variables 
+from the [SDK auto-configuration](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure).
+
+When you start the application, you will also get a log output of the configuration properties as they are translated into SDK properties.
+
+For example, if you set the `spring.application.name` in `application.yaml`,
+you will get the following log output:
+
+```
+11:53:07.724 [main] INFO  c.g.o.OpenTelemetryConfig - using config properties: {otel.exporter.otlp.endpoint=https://otlp-gateway-prod-eu-west-0.grafana.net/otlp, otel.logs.exporter=otlp, otel.traces.exporter=otlp, otel.exporter.otlp.headers=Authorization=Basic NTUz..., otel.exporter.otlp.protocol=http/protobuf, otel.resource.attributes=service.name=demo-app, otel.metrics.exporter=otlp}
+``` 
+
+(The `otel.exporter.otlp.headers` field is abbreviated for security reasons)
 
 # Properties
 
