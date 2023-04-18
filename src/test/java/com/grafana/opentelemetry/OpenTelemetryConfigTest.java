@@ -82,17 +82,17 @@ class OpenTelemetryConfigTest {
                 Arguments.of("masked",
                         Map.of(
                                 "foo", "bar",
-                                "otel.exporter.otlp.headers", "Authorization=Basic NTUz..."),
+                                OpenTelemetryConfig.OTLP_HEADERS, "Authorization=Basic NTUz..."),
                         Map.of(
                                 "foo", "bar",
-                                "otel.exporter.otlp.headers", "Authorization=Basic NTUzMzg2OmV5SnJJam9pW")),
+                                OpenTelemetryConfig.OTLP_HEADERS, "Authorization=Basic NTUzMzg2OmV5SnJJam9pW")),
                 Arguments.of("short auth header",
                         Map.of(
                                 "foo", "bar",
-                                "otel.exporter.otlp.headers", ""),
+                                OpenTelemetryConfig.OTLP_HEADERS, ""),
                         Map.of(
                                 "foo", "bar",
-                                "otel.exporter.otlp.headers", "")),
+                                OpenTelemetryConfig.OTLP_HEADERS, "")),
                 Arguments.of("no auth header",
                         Map.of(
                                 "foo", "bar"),

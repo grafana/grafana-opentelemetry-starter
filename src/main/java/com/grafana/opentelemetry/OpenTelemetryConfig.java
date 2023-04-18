@@ -26,6 +26,8 @@ public class OpenTelemetryConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(OpenTelemetryConfig.class);
 
+    public static final String OTLP_HEADERS = "otel.exporter.otlp.headers";
+
     @Bean
     public MeterRegistry openTelemetryMeterRegistry(OpenTelemetry openTelemetry, Clock clock) {
         return OpenTelemetryMeterRegistry.builder(openTelemetry).setClock(clock).build();
@@ -43,7 +45,7 @@ public class OpenTelemetryConfig {
                 "otel.resource.attributes", getResourceAttributes(properties, applicationName),
                 "otel.exporter.otlp.protocol", properties.getProtocol(),
                 "otel.exporter.otlp.endpoint", getEndpoint(properties.getEndpoint(), properties.getZone()),
-                "otel.exporter.otlp.headers", getBasicAuthHeader(properties.getInstanceId(), properties.getApiKey()),
+                OTLP_HEADERS, getBasicAuthHeader(properties.getInstanceId(), properties.getApiKey()),
                 "otel.traces.exporter", exporters,
                 "otel.metrics.exporter", exporters,
                 "otel.logs.exporter", exporters
@@ -55,7 +57,7 @@ public class OpenTelemetryConfig {
         try {
             return builder.build().getOpenTelemetrySdk();
         } catch (Exception e) {
-            logger.warn("unable to crate OpenTelemetry instance", e);
+            logger.warn("unable to create OpenTelemetry instance", e);
             return OpenTelemetry.noop();
         }
     }
@@ -67,7 +69,7 @@ public class OpenTelemetryConfig {
                                Map.Entry::getKey,
                                e -> {
                                    String v = e.getValue();
-                                   return e.getKey().equals("otel.exporter.otlp.headers") && v.length() > 24 ?
+                                   return e.getKey().equals(OTLP_HEADERS) && v.length() > 24 ?
                                                   v.substring(0, 24) + "..." : v;
                                }));
     }
