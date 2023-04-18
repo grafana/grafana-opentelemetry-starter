@@ -1,5 +1,6 @@
 package com.grafana.opentelemetry;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.HttpRequest;
@@ -20,7 +21,7 @@ import static org.awaitility.Awaitility.await;
 )
 @MockServerTest
 @AutoConfigureObservability
-@TestPropertySource(properties = { "grafana.otlp.endpoint = http://localhost:${mockServerPort}" })
+@TestPropertySource(properties = { "grafana.otlp.onprem.endpoint = http://localhost:${mockServerPort}" })
 public class IntegrationTest {
 
     private MockServerClient mockServerClient;
@@ -28,10 +29,18 @@ public class IntegrationTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    @Autowired
+    private GrafanaProperties properties;
+
     static {
         String delay = "500";
         System.setProperty("otel.metric.export.interval", delay);
         System.setProperty("otel.bsp.schedule.delay", delay);
+    }
+
+    @Test
+    void testProperties() {
+        Assertions.assertThat(properties.getCloud().getZone()).isEqualTo("prod-eu-west-0");
     }
 
     @Test

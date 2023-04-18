@@ -16,9 +16,10 @@ spring:
 
 grafana:
   otlp:
-    zone: <Grafana Zone>
-    instanceId: <Grafana Instance ID>
-    apiKey: <Grafana API key>
+    cloud:
+      zone: <Grafana Zone>
+      instanceId: <Grafana Instance ID>
+      apiKey: <Grafana API key>
 ```
 
 logback-spring.xml:
@@ -47,35 +48,11 @@ logback-spring.xml:
 
 # Properties
 
-## zone
-
-The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
-
-Use `endpoint` instead of `zone` when using the Grafana OSS stack.
-
-## endpoint
-
-When using the Grafana OSS stack, set the endpoint to the grafana agent URL.
-
-Use `zone` instead of `endpoint` when using the Grafana Cloud.
-
-## protocol
+## grafana.otlp.protocol
 
 The protocol used to send OTLP data. Can be either `http/protobuf` (which is the default) or `grpc`.
 
-## instanceId
-
-The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
-
-Leave `instanceId` empty when using the Grafana OSS stack.
-
-## apiKey
-
-Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com. The role should be "MetricsPublisher"
-
-Leave `apiKey` empty when using the Grafana OSS stack.
-
-## globalAttributes
+## grafana.otlp.globalAttributes
 
 Adds global (resource) attributes to metrics, traces and logs.
 
@@ -89,8 +66,32 @@ You can also add the application name and version to MANIFEST.MF, where they wil
 
 In gradle, the application name and version can be set as follows: <pre> bootJar { manifest { attributes('Implementation-Title': 'Demo Application', 'Implementation-Version': version) } } </pre> The environment variables HOST or HOSTNAME will be translated to `service.instance.id`.
 
-## debugLogging
+## grafana.otlp.debugLogging
 
 Log all metrics, traces, and logs that are created for debugging purposes (in addition to sending them to the backend via OTLP).
 
 This will also send metrics and traces to Loki as an unintended side effect.
+
+## grafana.otlp.cloud.zone
+
+The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
+
+Use `endpoint` instead of `zone` when using the Grafana OSS stack.
+
+## grafana.otlp.cloud.instanceId
+
+The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
+
+Leave `instanceId` empty when using the Grafana OSS stack.
+
+## grafana.otlp.cloud.apiKey
+
+Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com. The role should be "MetricsPublisher"
+
+Leave `apiKey` empty when using the Grafana OSS stack.
+
+## grafana.otlp.onprem.endpoint
+
+When using the Grafana OSS stack, set the endpoint to the grafana agent URL.
+
+Use `zone` instead of `endpoint` when using the Grafana Cloud.

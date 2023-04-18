@@ -41,11 +41,12 @@ public class OpenTelemetryConfig {
 
         AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder();
 
+        GrafanaProperties.CloudProperties cloud = properties.getCloud();
         Map<String, String> configProperties = Map.of(
                 "otel.resource.attributes", getResourceAttributes(properties, applicationName),
                 "otel.exporter.otlp.protocol", properties.getProtocol(),
-                "otel.exporter.otlp.endpoint", getEndpoint(properties.getEndpoint(), properties.getZone()),
-                OTLP_HEADERS, getBasicAuthHeader(properties.getInstanceId(), properties.getApiKey()),
+                "otel.exporter.otlp.endpoint", getEndpoint(properties.getOnPrem().getEndpoint(), cloud.getZone()),
+                OTLP_HEADERS, getBasicAuthHeader(cloud.getInstanceId(), cloud.getApiKey()),
                 "otel.traces.exporter", exporters,
                 "otel.metrics.exporter", exporters,
                 "otel.logs.exporter", exporters
@@ -79,7 +80,7 @@ public class OpenTelemetryConfig {
             return endpoint;
         }
         if (Strings.isBlank(zone)) {
-            logger.warn("please specify either grafana.otlp.endpoint or grafana.otlp.zone");
+            logger.warn("please specify either grafana.otlp.onprem.endpoint or grafana.otlp.cloud.zone");
             return "";
         }
         return String.format("https://otlp-gateway-%s.grafana.net/otlp", zone);
