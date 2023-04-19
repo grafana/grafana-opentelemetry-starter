@@ -14,12 +14,15 @@ public class GrafanaProperties {
 
     private OnPremProperties onPrem = new OnPremProperties();
 
-
     /**
-     * The protocol used to send OTLP data. Can be either <code>http/protobuf</code> (which is the default)
+     * The protocol used to send OTLP data. Can be either <code>http/protobuf</code>
      * or <code>grpc</code>.
+     * <p>
+     * The default value for <code>protocol</code> is <code>http/protobuf</code>
+     * if <code>grafana.otlp.cloud.instanceId</code> and <code>grafana.otlp.cloud.apiKey</code> are specified -
+     * <code>grpc</code> otherwise.
      */
-    private String protocol = "http/protobuf";
+    private String protocol;
 
     /**
      * Adds global (resource) attributes to metrics, traces and logs.
@@ -143,6 +146,8 @@ public class GrafanaProperties {
     public static class OnPremProperties {
         /**
          * When using the Grafana OSS stack, set the endpoint to the grafana agent URL.
+         * <p>
+         * If the grafana agent is locally, you can leave <code>endpoint</code> empty - the default values are correct.
          * <p>
          * Use <code>zone</code> instead of <code>endpoint</code> when using the Grafana Cloud.
          */

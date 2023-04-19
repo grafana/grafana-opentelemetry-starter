@@ -7,23 +7,6 @@ build.gradle:
 implementation 'com.grafana:grafana-opentelemetry-starter:0.0.6'
 ```
 
-application.yaml
-
-```yaml
-spring:
-  application:
-    name: demo-app
-
-grafana:
-  otlp:
-    cloud:
-      zone: <Grafana Zone>
-      instanceId: <Grafana Instance ID>
-      apiKey: <Grafana API key>
-```
-
-([Reference](#properties) of all configuration properties)
-
 logback-spring.xml:
 
 ```xml
@@ -47,6 +30,35 @@ logback-spring.xml:
 </configuration>
 ```
 
+## Grafana Cloud
+
+application.yaml:
+
+```yaml
+spring:
+  application:
+    name: demo-app
+
+grafana:
+  otlp:
+    cloud:
+      zone: <Grafana Zone>
+      instanceId: <Grafana Instance ID>
+      apiKey: <Grafana API key>
+```
+
+## Grafana Agent
+
+application.yaml:
+
+```yaml
+spring:
+  application:
+    name: demo-app
+```
+
+([Reference](#properties) of all configuration properties)
+
 # Configuration
 
 All configuration properties are described in the [reference](#properties).
@@ -68,7 +80,9 @@ you will get the following log output:
 
 ## grafana.otlp.protocol
 
-The protocol used to send OTLP data. Can be either `http/protobuf` (which is the default) or `grpc`.
+The protocol used to send OTLP data. Can be either `http/protobuf` or `grpc`.
+
+The default value for `protocol` is `http/protobuf` if `grafana.otlp.cloud.instanceId` and `grafana.otlp.cloud.apiKey` are specified - `grpc` otherwise.
 
 ## grafana.otlp.globalAttributes
 
@@ -111,5 +125,7 @@ Leave `apiKey` empty when using the Grafana OSS stack.
 ## grafana.otlp.onprem.endpoint
 
 When using the Grafana OSS stack, set the endpoint to the grafana agent URL.
+
+If the grafana agent is locally, you can leave `endpoint` empty - the default values are correct.
 
 Use `zone` instead of `endpoint` when using the Grafana Cloud.

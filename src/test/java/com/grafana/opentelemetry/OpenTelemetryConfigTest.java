@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 class OpenTelemetryConfigTest {
@@ -43,30 +44,31 @@ class OpenTelemetryConfigTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("basicAuthCases")
-    void getBasicAuthHeader(String name, String expected, String apiKey, int instanceId) {
-        String basicAuthHeader = OpenTelemetryConfig.getBasicAuthHeader(instanceId, apiKey);
+    void getBasicAuthHeader(String name, Optional<String> expected, String apiKey, int instanceId) {
+        Optional<String> basicAuthHeader = OpenTelemetryConfig.getBasicAuthHeader(instanceId, apiKey);
         Assertions.assertThat(basicAuthHeader).isEqualTo(expected);
     }
 
     private static Stream<Arguments> basicAuthCases() {
         return Stream.of(
-                Arguments.of("valid basic auth", "Authorization=Basic MTIyMzQ1OmFwaUtleQ==", "apiKey", 122345),
-                Arguments.of("API key blank", "", " ", 12345),
-                Arguments.of("instanceId 0", "", "apiKey", 0)
+                Arguments.of("valid basic auth", Optional.of("Authorization=Basic MTIyMzQ1OmFwaUtleQ=="), "apiKey", 122345),
+                Arguments.of("API key blank", Optional.empty(), " ", 12345),
+                Arguments.of("instanceId 0", Optional.empty(), "apiKey", 0)
         );
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("endpointCases")
-    void getEndpoint(String name, String expected, String zone, String endpoint) {
-        Assertions.assertThat(OpenTelemetryConfig.getEndpoint(endpoint, zone)).isEqualTo(expected);
+    void getEndpoint(String name, Optional<String> expected, String zone, String endpoint) {
+        Assertions.assertThat(OpenTelemetryConfig.getEndpoint(endpoint, zone, true)).isEqualTo(expected);
     }
 
     private static Stream<Arguments> endpointCases() {
         return Stream.of(
-                Arguments.of("only zone", "https://otlp-gateway-zone.grafana.net/otlp", "zone", ""),
-                Arguments.of("only endpoint", "endpoint", "", "endpoint"),
-                Arguments.of("both", "endpoint", "zone", "endpoint")
+                Arguments.of("only zone", Optional.of("https://otlp-gateway-zone.grafana.net/otlp"), "zone", ""),
+                Arguments.of("only endpoint", Optional.of("endpoint"), "", "endpoint"),
+                Arguments.of("both", Optional.of("endpoint"), "zone", "endpoint"),
+                Arguments.of("nothing", Optional.empty(), " ", " ")
         );
     }
 
