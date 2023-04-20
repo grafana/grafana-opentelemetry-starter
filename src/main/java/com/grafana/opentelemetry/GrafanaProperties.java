@@ -147,7 +147,8 @@ public class GrafanaProperties {
         /**
          * When using the Grafana OSS stack, set the endpoint to the grafana agent URL.
          * <p>
-         * If the grafana agent is locally, you can leave <code>endpoint</code> empty - the default values are correct.
+         * You do not need to set an <code>endpoint</code> value if your grafana agent is running locally
+         * with the default gRPC endpoint (localhost:4317).
          * <p>
          * Use <code>zone</code> instead of <code>endpoint</code> when using the Grafana Cloud.
          */
