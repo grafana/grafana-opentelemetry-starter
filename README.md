@@ -126,6 +126,6 @@ Leave `apiKey` empty when using the Grafana OSS stack.
 
 When using the Grafana OSS stack, set the endpoint to the grafana agent URL.
 
-If the grafana agent is locally, you can leave `endpoint` empty - the default values are correct.
+You do not need to set an `endpoint` value if your grafana agent is running locally with the default gRPC endpoint (localhost:4317).
 
 Use `zone` instead of `endpoint` when using the Grafana Cloud.
