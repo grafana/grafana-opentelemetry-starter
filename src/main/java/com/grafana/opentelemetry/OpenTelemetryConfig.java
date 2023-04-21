@@ -91,17 +91,25 @@ public class OpenTelemetryConfig {
 
     static Optional<String> getEndpoint(String endpoint, String zone, Optional<String> authHeader) {
         boolean hasZone = Strings.isNotBlank(zone);
-        if (Strings.isNotBlank(endpoint)) {
-            if (hasZone) {
-                logger.warn("ignoring grafana.otlp.cloud.zone, because grafana.otlp.onprem.endpoint takes precedence");
-            }
-            return Optional.of(endpoint);
-        }
-        if (hasZone) {
-            return Optional.of(String.format("https://otlp-gateway-%s.grafana.net/otlp", zone));
-        }
+        boolean hasEndpoint = Strings.isNotBlank(endpoint);
         if (authHeader.isPresent()) {
-            logger.warn("please specify either grafana.otlp.onprem.endpoint or grafana.otlp.cloud.zone");
+            if (hasEndpoint) {
+                logger.warn("ignoring grafana.otlp.onprem.endpoint, because grafana.otlp.cloud.instanceId was found");
+            }
+            if (hasZone) {
+                return Optional.of(String.format("https://otlp-gateway-%s.grafana.net/otlp", zone));
+            } else {
+                logger.warn("please specify grafana.otlp.cloud.zone");
+            }
+        } else {
+            if (hasZone) {
+                logger.warn("ignoring grafana.otlp.cloud.zone, because grafana.otlp.onprem.endpoint was found");
+            }
+            if (hasEndpoint) {
+                return Optional.of(endpoint);
+            } else {
+                logger.warn("please specify grafana.otlp.onprem.endpoint");
+            }
         }
         return Optional.empty();
     }

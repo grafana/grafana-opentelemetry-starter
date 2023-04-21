@@ -75,8 +75,8 @@ class OpenTelemetryConfigTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("endpointCases")
     void getEndpoint(String name, Optional<String> expected, String expectedOutput,
-            String zone, String endpoint, CapturedOutput output) {
-        Assertions.assertThat(OpenTelemetryConfig.getEndpoint(endpoint, zone, Optional.of("key"))).isEqualTo(expected);
+            String zone, String endpoint, Optional<String> authHeader, CapturedOutput output) {
+        Assertions.assertThat(OpenTelemetryConfig.getEndpoint(endpoint, zone, authHeader)).isEqualTo(expected);
         Assertions.assertThat(output).contains(expectedOutput);
     }
 
@@ -84,18 +84,26 @@ class OpenTelemetryConfigTest {
         return Stream.of(
                 Arguments.of("only zone",
                         Optional.of("https://otlp-gateway-zone.grafana.net/otlp"), "",
-                        "zone", ""),
+                        "zone", "", Optional.of("apiKey")),
                 Arguments.of("only endpoint",
                         Optional.of("endpoint"), "",
-                        "", "endpoint"),
-                Arguments.of("both",
+                        "", "endpoint", Optional.empty()),
+                Arguments.of("both with cloud",
+                        Optional.of("https://otlp-gateway-zone.grafana.net/otlp"),
+                        "ignoring grafana.otlp.onprem.endpoint, because grafana.otlp.cloud.instanceId was found",
+                        "zone", "endpoint", Optional.of("key")),
+                Arguments.of("both without cloud",
                         Optional.of("endpoint"),
-                        "ignoring grafana.otlp.cloud.zone, because grafana.otlp.onprem.endpoint takes precedence",
-                        "zone", "endpoint"),
-                Arguments.of("nothing",
+                        "ignoring grafana.otlp.cloud.zone, because grafana.otlp.onprem.endpoint was found",
+                        "zone", "endpoint", Optional.empty()),
+                Arguments.of("missing zone",
                         Optional.empty(),
-                        "please specify either grafana.otlp.onprem.endpoint or grafana.otlp.cloud.zone",
-                        " ", " ")
+                        "please specify grafana.otlp.cloud.zone",
+                        " ", " ", Optional.of("key")),
+                Arguments.of("missing endpoint",
+                        Optional.empty(),
+                        "please specify grafana.otlp.onprem.endpoint",
+                        " ", " ", Optional.empty())
         );
     }
 
