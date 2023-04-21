@@ -81,14 +81,14 @@ public class GrafanaProperties {
         /**
          * The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
          * <p>
-         * Use <code>endpoint</code> instead of <code>zone</code> when using the Grafana OSS stack.
+         * Use <code>endpoint</code> instead of <code>zone</code> when using the Grafana Agent.
          */
         private String zone;
 
         /**
          * The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
          * <p>
-         * Leave <code>instanceId</code> empty when using the Grafana OSS stack.
+         * Leave <code>instanceId</code> empty when using the Grafana Agent.
          */
         private int instanceId;
 
@@ -96,7 +96,7 @@ public class GrafanaProperties {
          * Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com.
          * The role should be "MetricsPublisher"
          * <p>
-         * Leave <code>apiKey</code> empty when using the Grafana OSS stack.
+         * Leave <code>apiKey</code> empty when using the Grafana Agent.
          */
         private String apiKey;
 

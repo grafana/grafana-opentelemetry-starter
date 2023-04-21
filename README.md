@@ -2,6 +2,8 @@
                           
 > ⚠️ Please use the Grafana Agent configuration for production use cases. 
 
+Spring boot starter to use Metrics, Traces, and Logs with OpenTelemetry in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack) 
+
 build.gradle:
 ```groovy
 implementation 'com.grafana:grafana-opentelemetry-starter:0.0.6'
@@ -102,19 +104,19 @@ This will also send metrics and traces to Loki as an unintended side effect.
 
 The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
 
-Use `endpoint` instead of `zone` when using the Grafana OSS stack.
+Use `endpoint` instead of `zone` when using the Grafana Agent.
 
 ## grafana.otlp.cloud.instanceId
 
 The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
 
-Leave `instanceId` empty when using the Grafana OSS stack.
+Leave `instanceId` empty when using the Grafana Agent.
 
 ## grafana.otlp.cloud.apiKey
 
 Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com. The role should be "MetricsPublisher"
 
-Leave `apiKey` empty when using the Grafana OSS stack.
+Leave `apiKey` empty when using the Grafana Agent.
 
 ## grafana.otlp.onprem.endpoint
 
