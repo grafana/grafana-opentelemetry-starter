@@ -36,7 +36,13 @@ public class OpenTelemetryConfig {
     }
 
     @Bean
-    public OpenTelemetry openTelemetry(GrafanaProperties properties,
+    public OpenTelemetry openTelemetry(Optional<AutoConfiguredOpenTelemetrySdk> sdk) {
+        return sdk.<OpenTelemetry>map(AutoConfiguredOpenTelemetrySdk::getOpenTelemetrySdk)
+                       .orElse(OpenTelemetry.noop());
+    }
+
+    @Bean
+    public AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk(GrafanaProperties properties,
             @Value("${spring.application.name:#{null}}") String applicationName) {
         AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder();
 
@@ -45,10 +51,10 @@ public class OpenTelemetryConfig {
         logger.info("using config properties: {}", maskAuthHeader(configProperties));
 
         try {
-            return builder.build().getOpenTelemetrySdk();
+            return builder.build();
         } catch (Exception e) {
             logger.warn("unable to create OpenTelemetry instance", e);
-            return OpenTelemetry.noop();
+            return null;
         }
     }
 

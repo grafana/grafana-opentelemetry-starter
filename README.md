@@ -63,7 +63,7 @@ spring:
 
 All configuration properties are described in the [reference](#properties).
 In addition, you can use all system properties or environment variables 
-from the [SDK auto-configuration](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure).
+from the [SDK auto-configuration](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure) - which will take precedence.
 
 When you start the application, you will also get a log output of the configuration properties as they are translated into SDK properties.
 
