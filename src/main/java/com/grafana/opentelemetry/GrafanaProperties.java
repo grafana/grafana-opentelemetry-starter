@@ -81,7 +81,7 @@ public class GrafanaProperties {
         /**
          * The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
          * <p>
-         * Use <code>endpoint</code> instead of <code>zone</code> when using the Grafana Agent.
+         * Use <code>onprem.endpoint</code> instead of <code>zone</code> when using the Grafana Agent.
          */
         private String zone;
 
@@ -132,7 +132,7 @@ public class GrafanaProperties {
          * You do not need to set an <code>endpoint</code> value if your Grafana Agent is running locally
          * with the default gRPC endpoint (localhost:4317).
          * <p>
-         * Use <code>zone</code> instead of <code>endpoint</code> when using the Grafana Cloud.
+         * Use <code>cloud.zone</code> instead of <code>endpoint</code> when using the Grafana Cloud.
          */
         private String endpoint;
 

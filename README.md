@@ -105,7 +105,7 @@ This will also send metrics and traces to Loki as an unintended side effect.
 
 The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
 
-Use `endpoint` instead of `zone` when using the Grafana Agent.
+Use `onprem.endpoint` instead of `zone` when using the Grafana Agent.
 
 ## grafana.otlp.cloud.instanceId
 
@@ -125,7 +125,7 @@ The endpoint of the Grafana Agent.
 
 You do not need to set an `endpoint` value if your Grafana Agent is running locally with the default gRPC endpoint (localhost:4317).
 
-Use `zone` instead of `endpoint` when using the Grafana Cloud.
+Use `cloud.zone` instead of `endpoint` when using the Grafana Cloud.
 
 ## grafana.otlp.onprem.protocol
 
