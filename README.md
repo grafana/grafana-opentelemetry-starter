@@ -59,7 +59,8 @@ spring:
     name: demo-app
 ```
 
-([Reference](#properties) of all configuration properties)
+- [How to configure the Grafana Agent](https://grafana.com/docs/opentelemetry/instrumentation/grafana-agent/)
+- [Reference](#properties) of all configuration properties
 
 # Configuration
 
