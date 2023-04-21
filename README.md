@@ -1,6 +1,6 @@
-**Status:** Experimental
-
 # Installation
+                          
+> ⚠️ Please use the Grafana Agent configuration for production use cases. 
 
 build.gradle:
 ```groovy
