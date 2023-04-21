@@ -77,7 +77,7 @@ public class OpenTelemetryConfig {
         return configProperties;
     }
 
-    private static String getProtocol(String protocol, Optional<String> authHeader) {
+    static String getProtocol(String protocol, Optional<String> authHeader) {
         boolean hasProto = Strings.isNotBlank(protocol);
         if (authHeader.isPresent()) {
             if (hasProto) {

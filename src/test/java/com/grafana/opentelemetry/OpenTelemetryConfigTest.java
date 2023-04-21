@@ -108,6 +108,32 @@ class OpenTelemetryConfigTest {
     }
 
     @ParameterizedTest(name = "{0}")
+    @MethodSource("protocolCases")
+    void getProtocol(String name, String expected, String expectedOutput,
+            String protocol, Optional<String> authHeader, CapturedOutput output) {
+        Assertions.assertThat(OpenTelemetryConfig.getProtocol(protocol, authHeader)).isEqualTo(expected);
+        Assertions.assertThat(output).contains(expectedOutput);
+    }
+
+    private static Stream<Arguments> protocolCases() {
+        return Stream.of(
+                Arguments.of("cloud",
+                        "http/protobuf", "",
+                        "", Optional.of("apiKey")),
+                Arguments.of("cloud and proto",
+                        "http/protobuf",
+                        "ignoring grafana.otlp.onprem.protocol, because grafana.otlp.cloud.instanceId was found",
+                        "grpc", Optional.of("apiKey")),
+                Arguments.of("onprem",
+                        "grpc", "",
+                        "", Optional.empty()),
+                Arguments.of("onprem and proto",
+                        "http/protobuf", "",
+                        "http/protobuf", Optional.empty())
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
     @MethodSource("maskCases")
     void maskAuthHeader(String name, Map<String, String> expected, Map<String, String> given) {
         Map<String, String> map = OpenTelemetryConfig.maskAuthHeader(given);
