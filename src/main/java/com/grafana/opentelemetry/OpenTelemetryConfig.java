@@ -56,25 +56,31 @@ public class OpenTelemetryConfig {
         String exporters = properties.isDebugLogging() ? "logging,otlp" : "otlp";
 
         GrafanaProperties.CloudProperties cloud = properties.getCloud();
+        GrafanaProperties.OnPremProperties onPrem = properties.getOnPrem();
         Optional<String> authHeader = getBasicAuthHeader(cloud.getInstanceId(), cloud.getApiKey());
         Map<String, String> configProperties = new HashMap<>(Map.of(
                 "otel.resource.attributes", getResourceAttributes(properties, applicationName),
-                "otel.exporter.otlp.protocol", getProtocol(properties.getProtocol(), authHeader),
+                "otel.exporter.otlp.protocol", getProtocol(onPrem.getProtocol(), authHeader),
                 "otel.traces.exporter", exporters,
                 "otel.metrics.exporter", exporters,
                 "otel.logs.exporter", exporters
         ));
         authHeader.ifPresent(s -> configProperties.put(OTLP_HEADERS, s));
-        getEndpoint(properties.getOnPrem().getEndpoint(), cloud.getZone(), authHeader)
+        getEndpoint(onPrem.getEndpoint(), cloud.getZone(), authHeader)
                 .ifPresent(s -> configProperties.put("otel.exporter.otlp.endpoint", s));
         return configProperties;
     }
 
     private static String getProtocol(String protocol, Optional<String> authHeader) {
-        if (Strings.isNotBlank(protocol)) {
-            return protocol;
+        boolean hasProto = Strings.isNotBlank(protocol);
+        if (authHeader.isPresent()) {
+            if (hasProto) {
+                logger.warn("ignoring grafana.otlp.onprem.protocol, because grafana.otlp.cloud.instanceId was found");
+            }
+            return "http/protobuf";
         }
-        return authHeader.isPresent() ? "http/protobuf" : "grpc";
+
+        return hasProto ? protocol : "grpc";
     }
 
     static Map<String, String> maskAuthHeader(Map<String, String> configProperties) {

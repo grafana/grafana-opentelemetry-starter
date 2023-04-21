@@ -78,12 +78,6 @@ you will get the following log output:
 
 # Properties
 
-## grafana.otlp.protocol
-
-The protocol used to send OTLP data. Can be either `http/protobuf` or `grpc`.
-
-The default value for `protocol` is `http/protobuf` if `grafana.otlp.cloud.instanceId` and `grafana.otlp.cloud.apiKey` are specified - `grpc` otherwise.
-
 ## grafana.otlp.globalAttributes
 
 Adds global (resource) attributes to metrics, traces and logs.
@@ -124,8 +118,12 @@ Leave `apiKey` empty when using the Grafana OSS stack.
 
 ## grafana.otlp.onprem.endpoint
 
-When using the Grafana OSS stack, set the endpoint to the grafana agent URL.
+The endpoint of the Grafana Agent.
 
-You do not need to set an `endpoint` value if your grafana agent is running locally with the default gRPC endpoint (localhost:4317).
+You do not need to set an `endpoint` value if your Grafana Agent is running locally with the default gRPC endpoint (localhost:4317).
 
 Use `zone` instead of `endpoint` when using the Grafana Cloud.
+
+## grafana.otlp.onprem.protocol
+
+The protocol used to send OTLP data. Can be either `http/protobuf` or `grpc` (default).

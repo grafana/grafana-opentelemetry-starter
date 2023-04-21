@@ -23,7 +23,7 @@ import static org.awaitility.Awaitility.await;
 @AutoConfigureObservability
 @TestPropertySource(properties = {
         "grafana.otlp.onprem.endpoint = http://localhost:${mockServerPort}",
-        "grafana.otlp.protocol = http/protobuf"
+        "grafana.otlp.onprem.protocol = http/protobuf"
 })
 public class IntegrationTest {
 

@@ -15,16 +15,6 @@ public class GrafanaProperties {
     private OnPremProperties onPrem = new OnPremProperties();
 
     /**
-     * The protocol used to send OTLP data. Can be either <code>http/protobuf</code>
-     * or <code>grpc</code>.
-     * <p>
-     * The default value for <code>protocol</code> is <code>http/protobuf</code>
-     * if <code>grafana.otlp.cloud.instanceId</code> and <code>grafana.otlp.cloud.apiKey</code> are specified -
-     * <code>grpc</code> otherwise.
-     */
-    private String protocol;
-
-    /**
      * Adds global (resource) attributes to metrics, traces and logs.
      * <p>
      * For example, you can add <code>service.version</code> to make it easier to see if a new version of the
@@ -73,14 +63,6 @@ public class GrafanaProperties {
 
     public void setOnPrem(OnPremProperties onPrem) {
         this.onPrem = onPrem;
-    }
-
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
     }
 
     public boolean isDebugLogging() {
@@ -145,14 +127,20 @@ public class GrafanaProperties {
 
     public static class OnPremProperties {
         /**
-         * When using the Grafana OSS stack, set the endpoint to the grafana agent URL.
+         * The endpoint of the Grafana Agent.
          * <p>
-         * You do not need to set an <code>endpoint</code> value if your grafana agent is running locally
+         * You do not need to set an <code>endpoint</code> value if your Grafana Agent is running locally
          * with the default gRPC endpoint (localhost:4317).
          * <p>
          * Use <code>zone</code> instead of <code>endpoint</code> when using the Grafana Cloud.
          */
         private String endpoint;
+
+        /**
+         * The protocol used to send OTLP data. Can be either <code>http/protobuf</code>
+         * or <code>grpc</code> (default).
+         */
+        private String protocol;
 
         public String getEndpoint() {
             return endpoint;
@@ -160,6 +148,14 @@ public class GrafanaProperties {
 
         public void setEndpoint(String endpoint) {
             this.endpoint = endpoint;
+        }
+
+        public String getProtocol() {
+            return protocol;
+        }
+
+        public void setProtocol(String protocol) {
+            this.protocol = protocol;
         }
     }
 }
