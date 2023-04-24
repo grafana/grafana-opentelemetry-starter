@@ -6,7 +6,7 @@ Spring boot starter to use Metrics, Traces, and Logs with OpenTelemetry in Grafa
 
 build.gradle:
 ```groovy
-implementation 'com.grafana:grafana-opentelemetry-starter:1.0'
+implementation 'com.grafana:grafana-opentelemetry-starter:1.0.0'
 ```
 
 logback-spring.xml:
