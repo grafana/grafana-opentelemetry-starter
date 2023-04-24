@@ -1,8 +1,16 @@
-# Installation
-                          
-> ⚠️ Please use the Grafana Agent configuration for production use cases. 
+# Overview
 
-Spring boot starter to use Metrics, Traces, and Logs with OpenTelemetry in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack) 
+The grafana-opentelemetry-starter makes it easy to use Metrics, Traces, and Logs with OpenTelemetry 
+in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack). 
+
+# Compatibility
+
+| Spring Boot Version | Recommended Setup                                                                        |
+|---------------------|------------------------------------------------------------------------------------------|
+| 3.0.4+              | Use this starter                                                                         |
+| 2.x                 | Use the [Java Agent](https://grafana.com/docs/opentelemetry/instrumentation/java-agent/) |
+
+# Installation
 
 build.gradle:
 ```groovy
@@ -33,6 +41,8 @@ logback-spring.xml:
 ```
 
 ## Grafana Cloud
+                          
+> ⚠️ Please use the Grafana Agent configuration for production use cases. 
 
 application.yaml:
 
