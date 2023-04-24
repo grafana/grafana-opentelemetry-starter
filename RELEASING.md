@@ -2,7 +2,8 @@
 
 To cut a new release:
 
-- Open a PR to update `grafanaOtelStarterVersion` in `gradle.properties`
+- `./scripts/release.sh "1.0"` (or whatever the new version is)
+- Open a PR
 - Once the PR is merged, push a git tag with the version number
 
 ## Setup
