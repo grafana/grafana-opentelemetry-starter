@@ -1,5 +1,6 @@
 package com.grafana.opentelemetry;
 
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
@@ -12,6 +13,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.context.TestPropertySource;
 
+import java.util.Optional;
+
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 
@@ -21,7 +24,10 @@ import static org.awaitility.Awaitility.await;
 )
 @MockServerTest
 @AutoConfigureObservability
-@TestPropertySource(properties = { "grafana.otlp.onprem.endpoint = http://localhost:${mockServerPort}" })
+@TestPropertySource(properties = {
+        "grafana.otlp.onprem.endpoint = http://localhost:${mockServerPort}",
+        "grafana.otlp.onprem.protocol = grpc" //is overridden by system property otel.exporter.otlp.protocol
+})
 public class IntegrationTest {
 
     private MockServerClient mockServerClient;
@@ -32,15 +38,26 @@ public class IntegrationTest {
     @Autowired
     private GrafanaProperties properties;
 
+    @Autowired
+    private Optional<AutoConfiguredOpenTelemetrySdk> sdk;
+
     static {
         String delay = "500";
         System.setProperty("otel.metric.export.interval", delay);
         System.setProperty("otel.bsp.schedule.delay", delay);
+        System.setProperty("otel.exporter.otlp.protocol", "http/protobuf");
     }
 
     @Test
     void testProperties() {
         Assertions.assertThat(properties.getCloud().getZone()).isEqualTo("prod-eu-west-0");
+    }
+
+    @Test
+    void systemPropHasPriority() {
+        Assertions.assertThat(sdk).hasValueSatisfying(
+                v -> Assertions.assertThat(v.getConfig().getString("otel.exporter.otlp.protocol"))
+                             .isEqualTo("http/protobuf"));
     }
 
     @Test

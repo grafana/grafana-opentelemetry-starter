@@ -16,7 +16,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -34,33 +36,57 @@ public class OpenTelemetryConfig {
     }
 
     @Bean
-    public OpenTelemetry openTelemetry(GrafanaProperties properties,
+    public OpenTelemetry openTelemetry(Optional<AutoConfiguredOpenTelemetrySdk> sdk) {
+        return sdk.<OpenTelemetry>map(AutoConfiguredOpenTelemetrySdk::getOpenTelemetrySdk)
+                       .orElse(OpenTelemetry.noop());
+    }
+
+    @Bean
+    public AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk(GrafanaProperties properties,
             @Value("${spring.application.name:#{null}}") String applicationName) {
-
-        String exporters = properties.isDebugLogging() ? "logging,otlp" : "otlp";
-
         AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder();
 
-        GrafanaProperties.CloudProperties cloud = properties.getCloud();
-        Map<String, String> configProperties = Map.of(
-                "otel.resource.attributes", getResourceAttributes(properties, applicationName),
-                "otel.exporter.otlp.protocol", properties.getProtocol(),
-                "otel.exporter.otlp.endpoint", getEndpoint(properties.getOnPrem().getEndpoint(), cloud.getZone()),
-                OTLP_HEADERS, getBasicAuthHeader(cloud.getInstanceId(), cloud.getApiKey()),
-                "otel.traces.exporter", exporters,
-                "otel.metrics.exporter", exporters,
-                "otel.logs.exporter", exporters
-        );
+        Map<String, String> configProperties = getConfigProperties(properties, applicationName);
         builder.addPropertiesSupplier(() -> configProperties);
-
         logger.info("using config properties: {}", maskAuthHeader(configProperties));
 
         try {
-            return builder.build().getOpenTelemetrySdk();
+            return builder.build();
         } catch (Exception e) {
             logger.warn("unable to create OpenTelemetry instance", e);
-            return OpenTelemetry.noop();
+            return null;
         }
+    }
+
+    private static Map<String, String> getConfigProperties(GrafanaProperties properties, String applicationName) {
+        String exporters = properties.isDebugLogging() ? "logging,otlp" : "otlp";
+
+        GrafanaProperties.CloudProperties cloud = properties.getCloud();
+        GrafanaProperties.OnPremProperties onPrem = properties.getOnPrem();
+        Optional<String> authHeader = getBasicAuthHeader(cloud.getInstanceId(), cloud.getApiKey());
+        Map<String, String> configProperties = new HashMap<>(Map.of(
+                "otel.resource.attributes", getResourceAttributes(properties, applicationName),
+                "otel.exporter.otlp.protocol", getProtocol(onPrem.getProtocol(), authHeader),
+                "otel.traces.exporter", exporters,
+                "otel.metrics.exporter", exporters,
+                "otel.logs.exporter", exporters
+        ));
+        authHeader.ifPresent(s -> configProperties.put(OTLP_HEADERS, s));
+        getEndpoint(onPrem.getEndpoint(), cloud.getZone(), authHeader)
+                .ifPresent(s -> configProperties.put("otel.exporter.otlp.endpoint", s));
+        return configProperties;
+    }
+
+    static String getProtocol(String protocol, Optional<String> authHeader) {
+        boolean hasProto = Strings.isNotBlank(protocol);
+        if (authHeader.isPresent()) {
+            if (hasProto) {
+                logger.warn("ignoring grafana.otlp.onprem.protocol, because grafana.otlp.cloud.instanceId was found");
+            }
+            return "http/protobuf";
+        }
+
+        return hasProto ? protocol : "grpc";
     }
 
     static Map<String, String> maskAuthHeader(Map<String, String> configProperties) {
@@ -75,23 +101,48 @@ public class OpenTelemetryConfig {
                                }));
     }
 
-    static String getEndpoint(String endpoint, String zone) {
-        if (Strings.isNotBlank(endpoint)) {
-            return endpoint;
+    static Optional<String> getEndpoint(String endpoint, String zone, Optional<String> authHeader) {
+        boolean hasZone = Strings.isNotBlank(zone);
+        boolean hasEndpoint = Strings.isNotBlank(endpoint);
+        if (authHeader.isPresent()) {
+            if (hasEndpoint) {
+                logger.warn("ignoring grafana.otlp.onprem.endpoint, because grafana.otlp.cloud.instanceId was found");
+            }
+            if (hasZone) {
+                return Optional.of(String.format("https://otlp-gateway-%s.grafana.net/otlp", zone));
+            } else {
+                logger.warn("please specify grafana.otlp.cloud.zone");
+            }
+        } else {
+            if (hasZone) {
+                logger.warn("ignoring grafana.otlp.cloud.zone, because grafana.otlp.onprem.endpoint was found");
+            }
+            if (hasEndpoint) {
+                return Optional.of(endpoint);
+            } else {
+                logger.warn("please specify grafana.otlp.onprem.endpoint");
+            }
         }
-        if (Strings.isBlank(zone)) {
-            logger.warn("please specify either grafana.otlp.onprem.endpoint or grafana.otlp.cloud.zone");
-            return "";
-        }
-        return String.format("https://otlp-gateway-%s.grafana.net/otlp", zone);
+        return Optional.empty();
     }
 
-    static String getBasicAuthHeader(int instanceId, String apiKey) {
-        if (Strings.isBlank(apiKey) || instanceId == 0) {
-            return "";
+    static Optional<String> getBasicAuthHeader(int instanceId, String apiKey) {
+        boolean hasKey = Strings.isNotBlank(apiKey);
+        boolean hasId = instanceId != 0;
+        if (hasKey && hasId) {
+            String userPass = String.format("%s:%s", instanceId, apiKey);
+            return Optional.of(
+                    String.format("Authorization=Basic %s", Base64.getEncoder().encodeToString(userPass.getBytes())));
         }
-        String userPass = String.format("%s:%s", instanceId, apiKey);
-        return String.format("Authorization=Basic %s", Base64.getEncoder().encodeToString(userPass.getBytes()));
+
+        if (hasKey) {
+            logger.warn("found grafana.otlp.cloud.apiKey but no grafana.otlp.cloud.instanceId");
+        }
+        if (hasId) {
+            logger.warn("found grafana.otlp.cloud.instanceId but no grafana.otlp.cloud.apiKey");
+        }
+
+        return Optional.empty();
     }
 
     private static String getResourceAttributes(GrafanaProperties properties, String applicationName) {

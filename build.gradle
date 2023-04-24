@@ -59,7 +59,7 @@ publishing {
 
             pom {
                 name  = 'Grafana OpenTelemetry Starter'
-                description = 'Spring boot starter to use Metrics, Traces, and Logs with OpenTelemetry in Grafana Cloud or Grafana OSS stack'
+                description = 'Spring boot starter to use Metrics, Traces, and Logs with OpenTelemetry in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack)'
                 url = 'https://github.com/grafana/grafana-opentelemetry-starter'
                 licenses {
                     license {

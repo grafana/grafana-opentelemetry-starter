@@ -14,13 +14,6 @@ public class GrafanaProperties {
 
     private OnPremProperties onPrem = new OnPremProperties();
 
-
-    /**
-     * The protocol used to send OTLP data. Can be either <code>http/protobuf</code> (which is the default)
-     * or <code>grpc</code>.
-     */
-    private String protocol = "http/protobuf";
-
     /**
      * Adds global (resource) attributes to metrics, traces and logs.
      * <p>
@@ -72,14 +65,6 @@ public class GrafanaProperties {
         this.onPrem = onPrem;
     }
 
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
     public boolean isDebugLogging() {
         return debugLogging;
     }
@@ -96,14 +81,14 @@ public class GrafanaProperties {
         /**
          * The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
          * <p>
-         * Use <code>endpoint</code> instead of <code>zone</code> when using the Grafana OSS stack.
+         * Use <code>onprem.endpoint</code> instead of <code>zone</code> when using the Grafana Agent.
          */
         private String zone;
 
         /**
          * The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
          * <p>
-         * Leave <code>instanceId</code> empty when using the Grafana OSS stack.
+         * Leave <code>instanceId</code> empty when using the Grafana Agent.
          */
         private int instanceId;
 
@@ -111,7 +96,7 @@ public class GrafanaProperties {
          * Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com.
          * The role should be "MetricsPublisher"
          * <p>
-         * Leave <code>apiKey</code> empty when using the Grafana OSS stack.
+         * Leave <code>apiKey</code> empty when using the Grafana Agent.
          */
         private String apiKey;
 
@@ -142,11 +127,20 @@ public class GrafanaProperties {
 
     public static class OnPremProperties {
         /**
-         * When using the Grafana OSS stack, set the endpoint to the grafana agent URL.
+         * The endpoint of the Grafana Agent.
          * <p>
-         * Use <code>zone</code> instead of <code>endpoint</code> when using the Grafana Cloud.
+         * You do not need to set an <code>endpoint</code> value if your Grafana Agent is running locally
+         * with the default gRPC endpoint (localhost:4317).
+         * <p>
+         * Use <code>cloud.zone</code> instead of <code>endpoint</code> when using the Grafana Cloud.
          */
         private String endpoint;
+
+        /**
+         * The protocol used to send OTLP data. Can be either <code>http/protobuf</code>
+         * or <code>grpc</code> (default).
+         */
+        private String protocol;
 
         public String getEndpoint() {
             return endpoint;
@@ -154,6 +148,14 @@ public class GrafanaProperties {
 
         public void setEndpoint(String endpoint) {
             this.endpoint = endpoint;
+        }
+
+        public String getProtocol() {
+            return protocol;
+        }
+
+        public void setProtocol(String protocol) {
+            this.protocol = protocol;
         }
     }
 }
