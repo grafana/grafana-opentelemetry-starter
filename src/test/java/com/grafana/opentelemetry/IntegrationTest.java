@@ -28,7 +28,7 @@ import static org.awaitility.Awaitility.await;
         "grafana.otlp.onprem.endpoint = http://localhost:${mockServerPort}",
         "grafana.otlp.onprem.protocol = grpc" //is overridden by system property otel.exporter.otlp.protocol
 })
-public class IntegrationTest {
+class IntegrationTest {
 
     private MockServerClient mockServerClient;
 
