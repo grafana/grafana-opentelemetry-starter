@@ -12,12 +12,14 @@ in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack).
 
 # Installation
 
-build.gradle:
+Add the following dependency to your `build.gradle` 
+([maven](https://mvnrepository.com/artifact/com.grafana/grafana-opentelemetry-starter/1.0.0)):
+
 ```groovy
 implementation 'com.grafana:grafana-opentelemetry-starter:1.0.0'
 ```
 
-logback-spring.xml:
+Next, register the OpenTelemetry logback appender in `logback-spring.xml` (or `logback.xml`):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -74,13 +76,30 @@ spring:
 - [How to configure the Grafana Agent](https://grafana.com/docs/opentelemetry/instrumentation/grafana-agent/)
 - [Reference](#properties) of all configuration properties
 
+If you have a changed the configuration of the grafana agent, 
+you can specify the endpoint and protocol. 
+This example uses the default values - it is equivalent to the example above:
+
+```yaml
+spring:
+  application:
+    name: demo-app
+grafana:
+  otlp:
+    onprem:
+      endpoint: localhost:4317
+      protocol: grpc
+```
+
 # Configuration
 
-All configuration properties are described in the [reference](#properties).
-The `grafana.otlp.cloud` and `grafana.otlp.onprem` properties are mutually exclusive.
-
-In addition, you can use all system properties or environment variables 
-from the [SDK auto-configuration](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure) - which will take precedence.
+- All configuration properties are described in the [reference](#properties).
+- The `grafana.otlp.cloud` and `grafana.otlp.onprem` properties are mutually exclusive.
+- As usual in Spring Boot, you can use environment variables to supply some of the properties, which is especially 
+  useful for secrets, e.g. `GRAFANA_OTLP_CLOUD_API_KEY` instead of `grafana.otlp.cloud.apiKey`.
+- In addition, you can use all system properties or environment variables from the 
+  [SDK auto-configuration](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure) - 
+  which will take precedence.
 
 When you start the application, you will also get a log output of the configuration properties as they are translated into SDK properties.
 
@@ -91,7 +110,7 @@ you will get the following log output:
 11:53:07.724 [main] INFO  c.g.o.OpenTelemetryConfig - using config properties: {otel.exporter.otlp.endpoint=https://otlp-gateway-prod-eu-west-0.grafana.net/otlp, otel.logs.exporter=otlp, otel.traces.exporter=otlp, otel.exporter.otlp.headers=Authorization=Basic NTUz..., otel.exporter.otlp.protocol=http/protobuf, otel.resource.attributes=service.name=demo-app, otel.metrics.exporter=otlp}
 ``` 
 
-(The `otel.exporter.otlp.headers` field is abbreviated for security reasons)
+(The `otel.exporter.otlp.headers` field is abbreviated for security reasons.)
 
 # Properties
 
