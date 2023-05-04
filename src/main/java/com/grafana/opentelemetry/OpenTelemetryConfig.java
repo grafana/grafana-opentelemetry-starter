@@ -117,13 +117,15 @@ public class OpenTelemetryConfig {
             }
         } else {
             if (hasZone) {
-                logger.warn("ignoring grafana.otlp.cloud.zone, because grafana.otlp.onprem.endpoint was found");
+                logger.warn("ignoring grafana.otlp.cloud.zone, because grafana.otlp.cloud.instanceId was not found");
             }
             if (hasEndpoint) {
                 return Optional.of(endpoint);
             } else {
-                logger.warn("please specify grafana.otlp.onprem.endpoint");
+                logger.info("grafana.otlp.onprem.endpoint not found, using default enpoint for otel.exporter.otlp.protocol");
             }
+
+
         }
         return Optional.empty();
     }
