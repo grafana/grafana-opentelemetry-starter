@@ -16,6 +16,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -122,7 +124,7 @@ public class OpenTelemetryConfig {
             if (hasEndpoint) {
                 return Optional.of(endpoint);
             } else {
-                logger.info("grafana.otlp.onprem.endpoint not found, using default enpoint for otel.exporter.otlp.protocol");
+                logger.info("grafana.otlp.onprem.endpoint not found, using default endpoint for otel.exporter.otlp.protocol");
             }
 
 
@@ -171,11 +173,17 @@ public class OpenTelemetryConfig {
             // ignore error reading manifest
         }
 
-        updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_NAME, applicationName,
-                manifestApplicationName);
+        updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_NAME, applicationName, manifestApplicationName);
         updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_VERSION, manifestApplicationVersion);
-        updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_INSTANCE_ID, System.getenv("HOSTNAME"),
-                System.getenv("HOST"));
+
+        String hostName;
+        try {
+            hostName = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            hostName = System.getenv("HOSTNAME");
+        }
+        updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_INSTANCE_ID,
+                hostName, System.getenv("HOST"));
 
         return resourceAttributes.entrySet().stream()
                        .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))

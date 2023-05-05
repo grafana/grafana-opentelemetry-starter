@@ -107,7 +107,7 @@ class OpenTelemetryConfigTest {
                         " ", " ", Optional.of("key")),
                 Arguments.of("onprem endpoint not set",
                         Optional.empty(),
-                        "grafana.otlp.onprem.endpoint not found, using default enpoint for otel.exporter.otlp.protocol",
+                        "grafana.otlp.onprem.endpoint not found, using default endpoint for otel.exporter.otlp.protocol",
                         " ", " ", Optional.empty())
         );
     }
