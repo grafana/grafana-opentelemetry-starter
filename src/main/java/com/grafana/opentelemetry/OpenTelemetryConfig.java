@@ -126,8 +126,6 @@ public class OpenTelemetryConfig {
             } else {
                 logger.info("grafana.otlp.onprem.endpoint not found, using default endpoint for otel.exporter.otlp.protocol");
             }
-
-
         }
         return Optional.empty();
     }
