@@ -74,8 +74,13 @@ class OpenTelemetryConfigTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("endpointCases")
-    void getEndpoint(String name, Optional<String> expected, String expectedOutput,
-            String zone, String endpoint, Optional<String> authHeader, CapturedOutput output) {
+    void getEndpoint(String name,
+                     Optional<String> expected,
+                     String expectedOutput,
+                     String zone,
+                     String endpoint,
+                     Optional<String> authHeader,
+                     CapturedOutput output) {
         Assertions.assertThat(OpenTelemetryConfig.getEndpoint(endpoint, zone, authHeader)).isEqualTo(expected);
         Assertions.assertThat(output).contains(expectedOutput);
     }
@@ -85,24 +90,24 @@ class OpenTelemetryConfigTest {
                 Arguments.of("only zone",
                         Optional.of("https://otlp-gateway-zone.grafana.net/otlp"), "",
                         "zone", "", Optional.of("apiKey")),
-                Arguments.of("only endpoint",
+                Arguments.of("only onprem endpoint",
                         Optional.of("endpoint"), "",
                         "", "endpoint", Optional.empty()),
                 Arguments.of("both with cloud",
                         Optional.of("https://otlp-gateway-zone.grafana.net/otlp"),
                         "ignoring grafana.otlp.onprem.endpoint, because grafana.otlp.cloud.instanceId was found",
                         "zone", "endpoint", Optional.of("key")),
-                Arguments.of("both without cloud",
+                Arguments.of("zone without instanceId",
                         Optional.of("endpoint"),
-                        "ignoring grafana.otlp.cloud.zone, because grafana.otlp.onprem.endpoint was found",
+                        "ignoring grafana.otlp.cloud.zone, because grafana.otlp.cloud.instanceId was not found",
                         "zone", "endpoint", Optional.empty()),
                 Arguments.of("missing zone",
                         Optional.empty(),
                         "please specify grafana.otlp.cloud.zone",
                         " ", " ", Optional.of("key")),
-                Arguments.of("missing endpoint",
+                Arguments.of("onprem endpoint not set",
                         Optional.empty(),
-                        "please specify grafana.otlp.onprem.endpoint",
+                        "grafana.otlp.onprem.endpoint not found, using default endpoint for otel.exporter.otlp.protocol",
                         " ", " ", Optional.empty())
         );
     }

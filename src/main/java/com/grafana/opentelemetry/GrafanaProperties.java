@@ -17,25 +17,39 @@ public class GrafanaProperties {
      * <p>
      * For example, you can add <code>service.version</code> to make it easier to see if a new version of the
      * application is causing a problem.
+     *
      * <p>
      * The attributes <code>service.name</code>, <code>service.version</code>, and <code>service.instance.id</code>
-     * are automatically detected as explained below, but if you set the value manually, it will be respected.
+     * are automatically detected as outlined below.
+     *
      * <p>
-     * "spring.application.name" in application.properties will be translated to <code>service.name</code>.
-     * <p>
-     * You can also add the application name and version to MANIFEST.MF, where they will be copied to
-     * <code>service.name</code> and <code>service.version</code> respectively.
-     * <p>
-     * In gradle, the application name and version can be set as follows:
+     * For <code>service.name</code> the order of precedence is:
+     *     <ol>
+     *       <li>environment variable OTEL_SERVICE_NAME</li>
+     *       <li>environment variable OTEL_RESOURCE_ATTRIBUTES</li>
+     *       <li>Manually set service_name in grafana.otlp.globalAttributes</li>
+     *       <li>spring.application.name" in application.properties</li>
+     *       <li>'Implementation-Title' in jar's MANIFEST.MF</li>
+     *     </ol>
+     *
+     *<p>
+     * The following block can be added to build.gradle to set the application name and version
+     * in the jar's MANIFEST.MF:
      * <pre>
      * bootJar {
      *     manifest {
      *         attributes('Implementation-Title':   'Demo Application',
-     *                    'Implementation-Version': version)
+     *                    'Implementation-Version':  version)
      *     }
      * }
      * </pre>
-     * The environment variables HOST or HOSTNAME will be translated to <code>service.instance.id</code>.
+     * The <code>service.instance.id</code> attribute will be set if any of the following return a value.
+     * The list is in order of precedence.
+     *   <ol>
+     *    <li>InetAddress.getLocalHost().getHostName()</li>
+     *    <li>environment variable HOSTNAME</li>
+     *    <li>environment variable HOST</li>
+     *   </ol>
      */
     private final Map<String, String> globalAttributes = new HashMap<>();
 
