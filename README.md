@@ -13,10 +13,10 @@ in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack).
 # Installation
 
 Add the following dependency to your `build.gradle` 
-([maven](https://mvnrepository.com/artifact/com.grafana/grafana-opentelemetry-starter/1.0.0)):
+([maven](https://mvnrepository.com/artifact/com.grafana/grafana-opentelemetry-starter/1.0.1)):
 
 ```groovy
-implementation 'com.grafana:grafana-opentelemetry-starter:1.0.0'
+implementation 'com.grafana:grafana-opentelemetry-starter:1.0.1'
 ```
 
 Next, register the OpenTelemetry logback appender in `logback-spring.xml` (or `logback.xml`):
