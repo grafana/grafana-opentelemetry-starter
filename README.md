@@ -7,7 +7,8 @@ in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack).
 
 | Spring Boot Version | Java Version | Recommended Setup                                                                        |
 |---------------------|--------------|------------------------------------------------------------------------------------------|
-| 3.0.4+              | 17+          | Use this starter                                                                         |
+| 3.1+                | 17+          | Use this starter                                                                         |
+| 3.0.4+              | 17+          | Use this starter in version 1.0.0                                                        |
 | 2.x                 | 8+           | Use the [Java Agent](https://grafana.com/docs/opentelemetry/instrumentation/java-agent/) |
 
 # Installation
