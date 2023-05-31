@@ -1,21 +1,22 @@
 package com.grafana.opentelemetry;
 
 import io.micrometer.core.instrument.Clock;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import io.micrometer.core.instrument.logging.LoggingMeterRegistry;
 import io.micrometer.registry.otlp.OtlpMeterRegistry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdkBuilder;
-import io.opentelemetry.sdk.metrics.Aggregation;
-import io.opentelemetry.sdk.metrics.InstrumentSelector;
-import io.opentelemetry.sdk.metrics.InstrumentType;
-import io.opentelemetry.sdk.metrics.SdkMeterProviderBuilder;
-import io.opentelemetry.sdk.metrics.View;
-import io.opentelemetry.sdk.metrics.internal.aggregator.ExplicitBucketHistogramUtils;
-import io.opentelemetry.semconv.ResourceAttributes;
+import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
+import org.apache.logging.log4j.util.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Base64;
@@ -54,18 +55,15 @@ public class OpenTelemetryConfig {
   public static final String OTLP_HEADERS = "otel.exporter.otlp.headers";
 
   @Bean
-  public MeterRegistry openTelemetryMeterRegistry(Clock clock, GrafanaProperties properties,
-                                                    @Value("${spring.application.name:#{null}}") String applicationName) {
+  public OtlpMeterRegistry openTelemetryMeterRegistry(Clock clock, GrafanaProperties properties,
+                                                        @Value("${spring.application.name:#{null}}") String applicationName) {
+        return new OtlpMeterRegistry(new GrafanaOtlpConfig(translateProperties(properties, applicationName)), clock);
+    }
 
-        TraslatedProperties p = translateProperties(properties, applicationName);
-
-        OtlpMeterRegistry otlpMeterRegistry = new OtlpMeterRegistry(new GrafanaOtlpConfig(p), clock);
-
-        if (properties.isDebugLogging()) {
-            return new CompositeMeterRegistry(clock, List.of(new LoggingMeterRegistry(), otlpMeterRegistry));
-        }
-
-        return otlpMeterRegistry;
+    @Bean
+    @ConditionalOnProperty(value = "grafana.otlp.debugLogging", havingValue = "true", matchIfMissing = false)
+    public LoggingMeterRegistry loggingMeterRegistry() {
+        return new LoggingMeterRegistry();
   }
 
   @Bean
