@@ -19,7 +19,7 @@ class GrafanaOtlpConfig implements OtlpConfig {
 
     @Override
     public String url() {
-        return p.getEndpoint().orElse(OtlpConfig.DEFAULT.url());
+        return p.getEndpoint().map(s -> s + "/v1/metrics").orElse(OtlpConfig.DEFAULT.url());
     }
 
     @Override
