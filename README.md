@@ -164,6 +164,7 @@ If anything is not working, or you have questions about the starter, we’re gla
 - In addition, you can use all system properties or environment variables from the
   [SDK auto-configuration](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure) -
   which will take precedence.
+variables (for expert config))
 
 ### Troubleshooting
 
@@ -236,7 +237,3 @@ The grafana.otlp.onprem.endpoint of the Grafana Agent.
 You do not need to set an `grafana.otlp.onprem.endpoint` value if your Grafana Agent is running locally with the default gRPC grafana.otlp.onprem.endpoint (localhost:4317).
 
 Use `cloud.grafana.otlp.cloud.zone` instead of `grafana.otlp.onprem.endpoint` when using the Grafana Cloud.
-
-#### grafana.otlp.onprem.protocol
-
-The grafana.otlp.onprem.protocol used to send OTLP data. Can be either `http/protobuf` or `grpc` (default).

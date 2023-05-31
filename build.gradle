@@ -63,9 +63,9 @@ dependencies {
     compileOnly 'org.springframework.boot:spring-boot-starter-log4j2'
 
     runtimeOnly "io.opentelemetry.instrumentation:opentelemetry-resources:$otelVersion-alpha"
-    implementation "io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5:$otelVersion-alpha"
     implementation "io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion"
     runtimeOnly "io.micrometer:micrometer-tracing-bridge-otel"
+    implementation "io.micrometer:micrometer-registry-otlp:1.11.0"
 
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 

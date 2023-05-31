@@ -165,26 +165,13 @@ public class GrafanaProperties {
      */
     private String endpoint;
 
-    /**
-     * The protocol used to send OTLP data. Can be either <code>http/protobuf</code> or <code>grpc
-     * </code> (default).
-     */
-    private String protocol;
-
-    public String getEndpoint() {
-      return endpoint;
-    }
+        public String getEndpoint() {
+            return endpoint;
+        }
 
     public void setEndpoint(String endpoint) {
       this.endpoint = endpoint;
     }
 
-    public String getProtocol() {
-      return protocol;
     }
-
-    public void setProtocol(String protocol) {
-      this.protocol = protocol;
-    }
-  }
 }

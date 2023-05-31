@@ -1,5 +1,11 @@
 # Changelog
-                  
+
+## unreleased
+
+* TODO release 2.0.0 - describe changes better
+* gRPC not supported anymore
+* env vars not supported anymore, because they will only affect the trace and log exporter
+
 ## Version 3.2.0 (2023-11-24)
                                                                                                        
 * TODO: more spring native
