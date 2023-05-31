@@ -2,7 +2,8 @@ package com.grafana.opentelemetry;
 
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.registry.otlp.OtlpConfig;
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
+import io.micrometer.core.instrument.logging.LoggingMeterRegistry;
 import io.micrometer.registry.otlp.OtlpMeterRegistry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
@@ -48,18 +49,6 @@ public class OpenTelemetryConfig {
 
     public static final String PROTOCOL = "http/protobuf";
 
-    private static class Properties {
-        Map<String, String> headers;
-        Optional<String> endpoint;
-        Map<String, String> resourceAttributes;
-
-        public Properties(Optional<String> endpoint, Map<String, String> headers, Map<String, String> resourceAttributes) {
-            this.headers = headers;
-            this.endpoint = endpoint;
-            this.resourceAttributes = resourceAttributes;
-        }
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(OpenTelemetryConfig.class);
 
   public static final String OTLP_HEADERS = "otel.exporter.otlp.headers";
@@ -68,37 +57,15 @@ public class OpenTelemetryConfig {
   public MeterRegistry openTelemetryMeterRegistry(Clock clock, GrafanaProperties properties,
                                                     @Value("${spring.application.name:#{null}}") String applicationName) {
 
-        Properties p = translateProperties(properties, applicationName);
+        TraslatedProperties p = translateProperties(properties, applicationName);
 
-        return new OtlpMeterRegistry(new OtlpConfig() {
+        OtlpMeterRegistry otlpMeterRegistry = new OtlpMeterRegistry(new GrafanaOtlpConfig(p), clock);
 
-            @Override
-            public Map<String, String> resourceAttributes() {
-            // note: add setting histogramGaugesEnabled in new otel version
-    return p.resourceAttributes;
-            }
+        if (properties.isDebugLogging()) {
+            return new CompositeMeterRegistry(clock, List.of(new LoggingMeterRegistry(), otlpMeterRegistry));
+        }
 
-            @Override
-            public String url() {
-                return p.endpoint.orElse(OtlpConfig.DEFAULT.url());
-            }
-
-            @Override
-            public Map<String, String> headers() {
-                return p.headers;
-            }
-
-            @Override
-            public String get(String key) {
-                return null;
-            }
-
-            //todo wait for next micrometer version to expose this: https://github.com/micrometer-metrics/micrometer/pull/3883/files#diff-472b2d48e56d0063bd23f43e531f7f14f3f2305f807d2bbd66aada9f644e8f79R152-R154
-//            @Override
-//            public TimeUnit baseTimeUnit() {
-//                return null;
-//            }
-        }, clock);
+        return otlpMeterRegistry;
   }
 
   @Bean
@@ -156,9 +123,9 @@ public class OpenTelemetryConfig {
       GrafanaProperties properties, String applicationName) {
     String exporters = properties.isDebugLogging() ? "logging,otlp" : "otlp";
 
-    Properties p = translateProperties(properties, applicationName);
+    TraslatedProperties p = translateProperties(properties, applicationName);
 
-        String resourceAttributes = p.resourceAttributes.entrySet().stream()
+        String resourceAttributes = p.getResourceAttributes().entrySet().stream()
                 .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))
                 .collect(Collectors.joining(","));
 
@@ -169,19 +136,21 @@ public class OpenTelemetryConfig {
                 "otel.metrics.exporter", exporters,
                 "otel.logs.exporter", exporters
         ));
-        authHeader.ifPresent(s -> configProperties.put(OTLP_HEADERS, s));
-        getEndpoint(onPrem.getEndpoint(), cloud.getZone(), authHeader)
-                .ifPresent(s -> configProperties.put("otel.exporter.otlp.endpoint", s));
+        if (!p.getHeaders().isEmpty()) {
+            configProperties.put(OTLP_HEADERS,
+                    p.getHeaders().entrySet().stream().map(e -> String.format("%s=%s", e.getKey(), e.getValue())).collect(Collectors.joining(",")));
+        }
+        p.getEndpoint().ifPresent(s -> configProperties.put("otel.exporter.otlp.endpoint", s));
         return configProperties;
     }
 
-  private static Properties translateProperties(GrafanaProperties properties, String applicationName) {
+  private static TraslatedProperties translateProperties(GrafanaProperties properties, String applicationName) {
         GrafanaProperties.CloudProperties cloud = properties.getCloud();
         Map<String, String> headers = getHeaders(cloud.getInstanceId(), cloud.getApiKey());
     Optional<String> endpoint = getEndpoint(properties.getOnPrem().getEndpoint(), cloud.getZone(), headers);
         Map<String, String> attributes = getResourceAttributes(properties, applicationName);
 
-    return new Properties(endpoint, headers, attributes);
+    return new TraslatedProperties(endpoint, headers, attributes);
   }
 
     static Map<String, String> maskAuthHeader(Map<String, String> configProperties) {
