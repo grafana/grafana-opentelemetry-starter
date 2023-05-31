@@ -26,7 +26,6 @@ import static org.awaitility.Awaitility.await;
 @AutoConfigureObservability
 @TestPropertySource(properties = {
         "grafana.otlp.onprem.endpoint = http://localhost:${mockServerPort}",
-        "grafana.otlp.onprem.protocol = grpc" //is overridden by system property otel.exporter.otlp.protocol
 })
 class IntegrationTest {
 
@@ -45,7 +44,7 @@ class IntegrationTest {
         String delay = "500";
         System.setProperty("otel.metric.export.interval", delay);
         System.setProperty("otel.bsp.schedule.delay", delay);
-        System.setProperty("otel.exporter.otlp.protocol", "http/protobuf");
+//        System.setProperty("otel.exporter.otlp.protocol", "http/protobuf");
     }
 
     @Test

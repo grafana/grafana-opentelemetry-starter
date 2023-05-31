@@ -120,7 +120,7 @@ spring:
 - Refer to the [Properties section](#properties) for details about configuration properties
 
 If you have a changed the configuration of the Grafana Agent,
-you can specify the endpoint and protocol.
+you can specify the endpoint.
 This example uses the default values - it is equivalent to the example above:
 
 ```yaml
@@ -131,7 +131,6 @@ grafana:
   otlp:
     onprem:
       endpoint: http://localhost:4317
-      protocol: grpc
 ```
 
 ## Grafana Dashboard
@@ -147,6 +146,7 @@ Once you've started your application, you can use this [Spring Boot Dashboard](h
 - In addition, you can use all system properties or environment variables from the
   [SDK auto-configuration](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure) -
   which will take precedence.
+variables (for expert config))
 
 ## Troubleshooting
 
@@ -213,7 +213,3 @@ The grafana.otlp.onprem.endpoint of the Grafana Agent.
 You do not need to set an `grafana.otlp.onprem.endpoint` value if your Grafana Agent is running locally with the default gRPC grafana.otlp.onprem.endpoint (localhost:4317).
 
 Use `cloud.grafana.otlp.cloud.zone` instead of `grafana.otlp.onprem.endpoint` when using the Grafana Cloud.
-
-### grafana.otlp.onprem.protocol
-
-The grafana.otlp.onprem.protocol used to send OTLP data. Can be either `http/protobuf` or `grpc` (default).

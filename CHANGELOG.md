@@ -1,5 +1,11 @@
 # Changelog
 
+## unreleased
+                                                         
+* TODO release 2.0.0 - describe changes better
+* gRPC not supported anymore
+* env vars not supported anymore, because they will only affect the trace and log exporter
+
 ## Version 1.2.0. (2023-06-06)
 
 * Set the base time unit to "seconds" - which ensures future compatibility with upcoming versions of the Grafana Agent 
