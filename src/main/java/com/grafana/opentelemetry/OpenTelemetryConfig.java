@@ -57,7 +57,7 @@ public class OpenTelemetryConfig {
   @Bean
   public OtlpMeterRegistry openTelemetryMeterRegistry(Clock clock, GrafanaProperties properties,
                                                         @Value("${spring.application.name:#{null}}") String applicationName) {
-        return new OtlpMeterRegistry(new GrafanaOtlpConfig(translateProperties(properties, applicationName)), clock);
+        return new OtlpMeterRegistry(new MetricsOtlpConfig(translateProperties(properties, applicationName)), clock);
     }
 
     @Bean
@@ -121,7 +121,7 @@ public class OpenTelemetryConfig {
       GrafanaProperties properties, String applicationName) {
     String exporters = properties.isDebugLogging() ? "logging,otlp" : "otlp";
 
-    TraslatedProperties p = translateProperties(properties, applicationName);
+    TranslatedProperties p = translateProperties(properties, applicationName);
 
         String resourceAttributes = p.getResourceAttributes().entrySet().stream()
                 .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))
@@ -142,13 +142,13 @@ public class OpenTelemetryConfig {
         return configProperties;
     }
 
-  private static TraslatedProperties translateProperties(GrafanaProperties properties, String applicationName) {
+  private static TranslatedProperties translateProperties(GrafanaProperties properties, String applicationName) {
         GrafanaProperties.CloudProperties cloud = properties.getCloud();
         Map<String, String> headers = getHeaders(cloud.getInstanceId(), cloud.getApiKey());
     Optional<String> endpoint = getEndpoint(properties.getOnPrem().getEndpoint(), cloud.getZone(), headers);
         Map<String, String> attributes = getResourceAttributes(properties, applicationName);
 
-    return new TraslatedProperties(endpoint, headers, attributes);
+    return new TranslatedProperties(endpoint, headers, attributes);
   }
 
     static Map<String, String> maskAuthHeader(Map<String, String> configProperties) {

@@ -4,11 +4,11 @@ import io.micrometer.registry.otlp.OtlpConfig;
 
 import java.util.Map;
 
-class GrafanaOtlpConfig implements OtlpConfig {
+class MetricsOtlpConfig implements OtlpConfig {
 
-    private final TraslatedProperties p;
+    private final TranslatedProperties p;
 
-    public GrafanaOtlpConfig(TraslatedProperties p) {
+    public MetricsOtlpConfig(TranslatedProperties p) {
         this.p = p;
     }
 
