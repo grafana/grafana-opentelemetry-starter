@@ -32,6 +32,11 @@ java {
     withSourcesJar()
 }
 
+jar {
+    // allows maven to read the artifact (by default, it's "plain")
+    archiveClassifier.set('')
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
