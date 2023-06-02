@@ -29,7 +29,11 @@ implementation 'com.grafana:grafana-opentelemetry-starter:1.0.1'
 </dependency>
 ```
 
-Next, register the OpenTelemetry logback appender in `logback-spring.xml` (or `logback.xml`):
+The next step depends on your logging framework - logback and log4j2 are supported:
+
+## Logback
+
+If you use logback, register the OpenTelemetry logback appender in `logback-spring.xml` (or `logback.xml`):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -50,6 +54,28 @@ Next, register the OpenTelemetry logback appender in `logback-spring.xml` (or `l
     <appender-ref ref="OpenTelemetry"/>
   </root>
 </configuration>
+```
+
+## Log4j2
+
+If you use log4j2, register the OpenTelemetry logback appender in `log4j2.xml`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration packages="io.opentelemetry.instrumentation.log4j.appender.v2_17">
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+    </Console>
+    <OpenTelemetry name="OpenTelemetryAppender"/>
+  </Appenders>
+  <Loggers>
+    <Root level="info">
+      <AppenderRef ref="OpenTelemetryAppender"/>
+      <AppenderRef ref="Console"/>
+    </Root>
+  </Loggers>
+</Configuration>
 ```
 
 Finally, configure your application.yaml or application.properties either for Grafana Cloud or Grafana Agent.

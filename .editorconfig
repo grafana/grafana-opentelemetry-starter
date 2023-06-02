@@ -1,0 +1,4 @@
+root = true
+
+[*.xml]
+indent_size = 2
