@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 1.1.0. (2023-06-02)
+
+* Bugfix: starter can now be used with maven
+
 ## Version 1.0.1. (2023-05-23)
 
 ### Enhancements
