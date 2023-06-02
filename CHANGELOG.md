@@ -2,6 +2,7 @@
 
 ## Version 1.1.0. (2023-06-02)
 
+* Add support for log4j
 * Bugfix: starter can now be used with maven
 
 ## Version 1.0.1. (2023-05-23)
