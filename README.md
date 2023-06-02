@@ -156,13 +156,15 @@ Adds global (resource) attributes to metrics, traces and logs.
 
 For example, you can add `service.version` to make it easier to see if a new version of the application is causing a problem.
 
-The attributes `service.name`, `service.version`, and `service.instance.id` are automatically detected as explained below, but if you set the value manually, it will be respected.
 
-"spring.application.name" in application.properties will be translated to `service.name`.
 
-You can also add the application name and version to MANIFEST.MF, where they will be copied to `service.name` and `service.version` respectively.
+The attributes `service.name`, `service.version`, and `service.instance.id` are automatically detected as outlined below.
 
-In gradle, the application name and version can be set as follows: <pre> bootJar { manifest { attributes('Implementation-Title': 'Demo Application', 'Implementation-Version': version) } } </pre> The environment variables HOST or HOSTNAME will be translated to `service.instance.id`.
+
+
+For `service.name` the order of precedence is: <ol> <li>environment variable OTEL_SERVICE_NAME</li> <li>environment variable OTEL_RESOURCE_ATTRIBUTES</li> <li>Manually set service_name in grafana.otlp.globalAttributes</li> <li>spring.application.name" in application.properties</li> <li>'Implementation-Title' in jar's MANIFEST.MF</li> </ol>
+
+The following block can be added to build.gradle to set the application name and version in the jar's MANIFEST.MF: <pre> bootJar { manifest { attributes('Implementation-Title': 'Demo Application', 'Implementation-Version': version) } } </pre> The `service.instance.id` attribute will be set if any of the following return a value. The list is in order of precedence. <ol> <li>InetAddress.getLocalHost().getHostName()</li> <li>environment variable HOSTNAME</li> <li>environment variable HOST</li> </ol>
 
 ## grafana.otlp.debugLogging
 
