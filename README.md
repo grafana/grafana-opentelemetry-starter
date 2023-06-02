@@ -1,23 +1,32 @@
 # Overview
 
-The grafana-opentelemetry-starter makes it easy to use Metrics, Traces, and Logs with OpenTelemetry 
-in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack). 
+The grafana-opentelemetry-starter makes it easy to use Metrics, Traces, and Logs with OpenTelemetry
+in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack).
 
 # Compatibility
 
 | Spring Boot Version | Java Version | Recommended Setup                                                                        |
 |---------------------|--------------|------------------------------------------------------------------------------------------|
 | 3.1+                | 17+          | Use this starter                                                                         |
-| 3.0.4+              | 17+          | Use this starter in version 1.0.0                                                        |
+| 3.0.4+              | 17+          | Use this starter in version 1.0.0 (only works with gradle)                               |
 | 2.x                 | 8+           | Use the [Java Agent](https://grafana.com/docs/opentelemetry/instrumentation/java-agent/) |
 
 # Installation
 
-Add the following dependency to your `build.gradle` 
-([maven](https://mvnrepository.com/artifact/com.grafana/grafana-opentelemetry-starter/1.0.1)):
+Add the following dependency to your `build.gradle`
 
 ```groovy
 implementation 'com.grafana:grafana-opentelemetry-starter:1.0.1'
+```
+
+... or `pom.xml`
+
+```xml
+<dependency>
+    <groupId>com.grafana</groupId>
+    <artifactId>grafana-opentelemetry-starter</artifactId>
+    <version>1.0.1</version>
+</dependency>
 ```
 
 Next, register the OpenTelemetry logback appender in `logback-spring.xml` (or `logback.xml`):
@@ -47,7 +56,7 @@ Finally, configure your application.yaml or application.properties either for Gr
 
 ## Grafana Cloud
 
-> ⚠️ Please use the Grafana Agent configuration for production use cases. 
+> ⚠️ Please use the Grafana Agent configuration for production use cases.
 
 application.yaml:
 
@@ -77,8 +86,8 @@ spring:
 - [How to configure the Grafana Agent](https://grafana.com/docs/opentelemetry/instrumentation/grafana-agent/)
 - [Reference](#properties) of all configuration properties
 
-If you have a changed the configuration of the grafana agent, 
-you can specify the endpoint and protocol. 
+If you have a changed the configuration of the grafana agent,
+you can specify the endpoint and protocol.
 This example uses the default values - it is equivalent to the example above:
 
 ```yaml
@@ -88,7 +97,7 @@ spring:
 grafana:
   otlp:
     onprem:
-      endpoint: localhost:4317
+      endpoint: http://localhost:4317
       protocol: grpc
 ```
 
@@ -96,10 +105,10 @@ grafana:
 
 - All configuration properties are described in the [reference](#properties).
 - The `grafana.otlp.cloud` and `grafana.otlp.onprem` properties are mutually exclusive.
-- As usual in Spring Boot, you can use environment variables to supply some of the properties, which is especially 
+- As usual in Spring Boot, you can use environment variables to supply some of the properties, which is especially
   useful for secrets, e.g. `GRAFANA_OTLP_CLOUD_API_KEY` instead of `grafana.otlp.cloud.apiKey`.
-- In addition, you can use all system properties or environment variables from the 
-  [SDK auto-configuration](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure) - 
+- In addition, you can use all system properties or environment variables from the
+  [SDK auto-configuration](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure) -
   which will take precedence.
 
 When you start the application, you will also get a log output of the configuration properties as they are translated into SDK properties.
@@ -109,7 +118,7 @@ you will get the following log output:
 
 ```
 11:53:07.724 [main] INFO  c.g.o.OpenTelemetryConfig - using config properties: {otel.exporter.otlp.endpoint=https://otlp-gateway-prod-eu-west-0.grafana.net/otlp, otel.logs.exporter=otlp, otel.traces.exporter=otlp, otel.exporter.otlp.headers=Authorization=Basic NTUz..., otel.exporter.otlp.protocol=http/protobuf, otel.resource.attributes=service.name=demo-app, otel.metrics.exporter=otlp}
-``` 
+```
 
 (The `otel.exporter.otlp.headers` field is abbreviated for security reasons.)
 
