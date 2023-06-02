@@ -140,7 +140,7 @@ public class GrafanaProperties {
          * The endpoint of the Grafana Agent.
          * <p>
          * You do not need to set an <code>endpoint</code> value if your Grafana Agent is running locally
-         * with the default gRPC endpoint (localhost:4317).
+         * with the default http/protobuf endpoint (http://localhost:4318).
          * <p>
          * Use <code>cloud.zone</code> instead of <code>endpoint</code> when using the Grafana Cloud.
          */
