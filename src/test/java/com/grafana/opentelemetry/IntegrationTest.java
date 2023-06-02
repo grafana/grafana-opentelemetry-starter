@@ -44,7 +44,6 @@ class IntegrationTest {
         String delay = "500";
         System.setProperty("otel.metric.export.interval", delay);
         System.setProperty("otel.bsp.schedule.delay", delay);
-//        System.setProperty("otel.exporter.otlp.protocol", "http/protobuf");
     }
 
     @Test
