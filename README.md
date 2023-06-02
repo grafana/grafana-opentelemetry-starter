@@ -31,9 +31,11 @@ implementation 'com.grafana:grafana-opentelemetry-starter:1.1.0'
 
 The next step depends on your logging framework - logback and log4j2 are supported:
 
-## Logback
+## Logging
 
-If you use logback, register the OpenTelemetry logback appender in `logback-spring.xml` (or `logback.xml`):
+### Logback
+
+If you use logback, register the OpenTelemetry logback appender in `logback-spring.xml` (or `logback.xml`) - which you typically have in `main/resources`:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -56,9 +58,9 @@ If you use logback, register the OpenTelemetry logback appender in `logback-spri
 </configuration>
 ```
 
-## Log4j2
+### Log4j2
 
-If you use log4j2, register the OpenTelemetry logback appender in `log4j2.xml`:
+If you use log4j2, register the OpenTelemetry log4j2 appender in `log4j2.xml` - which you typically have in `main/resources`:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
