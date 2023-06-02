@@ -16,7 +16,7 @@ in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack).
 Add the following dependency to your `build.gradle`
 
 ```groovy
-implementation 'com.grafana:grafana-opentelemetry-starter:1.0.1'
+implementation 'com.grafana:grafana-opentelemetry-starter:1.1.0'
 ```
 
 ... or `pom.xml`
@@ -25,7 +25,7 @@ implementation 'com.grafana:grafana-opentelemetry-starter:1.0.1'
 <dependency>
     <groupId>com.grafana</groupId>
     <artifactId>grafana-opentelemetry-starter</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
