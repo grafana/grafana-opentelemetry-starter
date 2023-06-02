@@ -182,7 +182,13 @@ you will get the following log output:
 If you still don't see your logs, traces and metrics in Grafana, even though the configuration looks good, 
 you can turn on [debug logging](#grafanaotlpdebuglogging) to what data the application is emitting.
 
-### Properties
+## Limitations
+
+- gRPC cannot be used to send OTLP data currently
+- [SDK auto-configuration properties](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure)
+  cannot be used currently
+
+## Properties
 
 #### grafana.otlp.globalAttributes
 
@@ -196,7 +202,7 @@ The attributes `service.name`, `service.version`, and `service.instance.id` are 
 
 
 
-For `service.name` the order of precedence is: <ol> <li>environment variable OTEL_SERVICE_NAME</li> <li>environment variable OTEL_RESOURCE_ATTRIBUTES</li> <li>Manually set service_name in grafana.otlp.grafana.otlp.globalAttributes</li> <li>spring.application.name" in application.properties</li> <li>'Implementation-Title' in jar's MANIFEST.MF</li> </ol>
+For `service.name` the order of precedence is: <ol> <li>Manually set service_name in grafana.otlp.grafana.otlp.globalAttributes</li> <li>spring.application.name" in application.properties</li> <li>'Implementation-Title' in jar's MANIFEST.MF</li> </ol>
 
 The following block can be added to build.gradle to set the application name and version in the jar's MANIFEST.MF: <pre> bootJar { manifest { attributes('Implementation-Title': 'Demo Application', 'Implementation-Version': version) } } </pre> The `service.instance.id` attribute will be set if any of the following return a value. The list is in order of precedence. <ol> <li>InetAddress.getLocalHost().getHostName()</li> <li>environment variable HOSTNAME</li> <li>environment variable HOST</li> </ol>
 
@@ -234,6 +240,6 @@ Leave `grafana.otlp.cloud.apiKey` empty when using the Grafana Agent.
 
 The grafana.otlp.onprem.endpoint of the Grafana Agent.
 
-You do not need to set an `grafana.otlp.onprem.endpoint` value if your Grafana Agent is running locally with the default gRPC grafana.otlp.onprem.endpoint (localhost:4317).
+You do not need to set an `endpoint` value if your Grafana Agent is running locally with the default http/protobuf grafana.otlp.onprem.endpoint (http://localhost:4318).
 
 Use `cloud.grafana.otlp.cloud.zone` instead of `grafana.otlp.onprem.endpoint` when using the Grafana Cloud.
