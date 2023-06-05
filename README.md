@@ -11,7 +11,7 @@ in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack).
 | 3.0.4+              | 17+          | Use this starter in version 1.0.0 (only works with gradle)                               |
 | 2.x                 | 8+           | Use the [Java Agent](https://grafana.com/docs/opentelemetry/instrumentation/java-agent/) |
 
-# Installation
+# Getting Started
 
 Add the following dependency to your `build.gradle`
 
@@ -80,9 +80,11 @@ If you use log4j2, register the OpenTelemetry log4j2 appender in `log4j2.xml` - 
 </Configuration>
 ```
 
+## Configuration
+
 Finally, configure your application.yaml or application.properties either for Grafana Cloud or Grafana Agent.
 
-## Grafana Cloud
+### Grafana Cloud
 
 > ⚠️ Please use the Grafana Agent configuration for production use cases.
 
@@ -101,7 +103,7 @@ grafana:
       apiKey: <Grafana API key>
 ```
 
-## Grafana Agent
+### Grafana Agent
 
 application.yaml:
 
@@ -129,15 +131,17 @@ grafana:
       protocol: grpc
 ```
 
-# Configuration
+# Reference
 
 - All configuration properties are described in the [reference](#properties).
 - The `grafana.otlp.cloud` and `grafana.otlp.onprem` properties are mutually exclusive.
 - As usual in Spring Boot, you can use environment variables to supply some of the properties, which is especially
-  useful for secrets, e.g. `GRAFANA_OTLP_CLOUD_API_KEY` instead of `grafana.otlp.cloud.apiKey`.
+  useful for secrets, e.g. `GRAFANA_OTLP_CLOUD_API_KEY` instead of `grafana.otlp.cloud.grafana.otlp.cloud.apiKey`.
 - In addition, you can use all system properties or environment variables from the
   [SDK auto-configuration](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure) -
   which will take precedence.
+
+## Troubleshooting
 
 When you start the application, you will also get a log output of the configuration properties as they are translated into SDK properties.
 
@@ -145,14 +149,17 @@ For example, if you set the `spring.application.name` in `application.yaml`,
 you will get the following log output:
 
 ```
-11:53:07.724 [main] INFO  c.g.o.OpenTelemetryConfig - using config properties: {otel.exporter.otlp.endpoint=https://otlp-gateway-prod-eu-west-0.grafana.net/otlp, otel.logs.exporter=otlp, otel.traces.exporter=otlp, otel.exporter.otlp.headers=Authorization=Basic NTUz..., otel.exporter.otlp.protocol=http/protobuf, otel.resource.attributes=service.name=demo-app, otel.metrics.exporter=otlp}
+11:53:07.724 [main] INFO  c.g.o.OpenTelemetryConfig - using config properties: {otel.exporter.otlp.grafana.otlp.onprem.endpoint=https://otlp-gateway-prod-eu-west-0.grafana.net/otlp, otel.logs.exporter=otlp, otel.traces.exporter=otlp, otel.exporter.otlp.headers=Authorization=Basic NTUz..., otel.exporter.otlp.grafana.otlp.onprem.protocol=http/protobuf, otel.resource.attributes=service.name=demo-app, otel.metrics.exporter=otlp}
 ```
 
 (The `otel.exporter.otlp.headers` field is abbreviated for security reasons.)
 
-# Properties
+If you still don't see your logs, traces and metrics in Grafana, even though the configuration looks good, 
+you can turn on [debug loggong](#grafanaotlpdebuglogging) to what data the application is emitting.
 
-## grafana.otlp.globalAttributes
+## Properties
+
+### grafana.otlp.globalAttributes
 
 Adds global (resource) attributes to metrics, traces and logs.
 
@@ -164,42 +171,42 @@ The attributes `service.name`, `service.version`, and `service.instance.id` are 
 
 
 
-For `service.name` the order of precedence is: <ol> <li>environment variable OTEL_SERVICE_NAME</li> <li>environment variable OTEL_RESOURCE_ATTRIBUTES</li> <li>Manually set service_name in grafana.otlp.globalAttributes</li> <li>spring.application.name" in application.properties</li> <li>'Implementation-Title' in jar's MANIFEST.MF</li> </ol>
+For `service.name` the order of precedence is: <ol> <li>environment variable OTEL_SERVICE_NAME</li> <li>environment variable OTEL_RESOURCE_ATTRIBUTES</li> <li>Manually set service_name in grafana.otlp.grafana.otlp.globalAttributes</li> <li>spring.application.name" in application.properties</li> <li>'Implementation-Title' in jar's MANIFEST.MF</li> </ol>
 
 The following block can be added to build.gradle to set the application name and version in the jar's MANIFEST.MF: <pre> bootJar { manifest { attributes('Implementation-Title': 'Demo Application', 'Implementation-Version': version) } } </pre> The `service.instance.id` attribute will be set if any of the following return a value. The list is in order of precedence. <ol> <li>InetAddress.getLocalHost().getHostName()</li> <li>environment variable HOSTNAME</li> <li>environment variable HOST</li> </ol>
 
-## grafana.otlp.debugLogging
+### grafana.otlp.debugLogging
 
 Log all metrics, traces, and logs that are created for debugging purposes (in addition to sending them to the backend via OTLP).
 
 This will also send metrics and traces to Loki as an unintended side effect.
 
-## grafana.otlp.cloud.zone
+### grafana.otlp.cloud.zone
 
 The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
 
-Use `onprem.endpoint` instead of `zone` when using the Grafana Agent.
+Use `onprem.grafana.otlp.onprem.endpoint` instead of `grafana.otlp.cloud.zone` when using the Grafana Agent.
 
-## grafana.otlp.cloud.instanceId
+### grafana.otlp.cloud.instanceId
 
 The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
 
-Leave `instanceId` empty when using the Grafana Agent.
+Leave `grafana.otlp.cloud.instanceId` empty when using the Grafana Agent.
 
-## grafana.otlp.cloud.apiKey
+### grafana.otlp.cloud.apiKey
 
 Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com. The role should be "MetricsPublisher"
 
-Leave `apiKey` empty when using the Grafana Agent.
+Leave `grafana.otlp.cloud.apiKey` empty when using the Grafana Agent.
 
-## grafana.otlp.onprem.endpoint
+### grafana.otlp.onprem.endpoint
 
-The endpoint of the Grafana Agent.
+The grafana.otlp.onprem.endpoint of the Grafana Agent.
 
-You do not need to set an `endpoint` value if your Grafana Agent is running locally with the default gRPC endpoint (localhost:4317).
+You do not need to set an `grafana.otlp.onprem.endpoint` value if your Grafana Agent is running locally with the default gRPC grafana.otlp.onprem.endpoint (localhost:4317).
 
-Use `cloud.zone` instead of `endpoint` when using the Grafana Cloud.
+Use `cloud.grafana.otlp.cloud.zone` instead of `grafana.otlp.onprem.endpoint` when using the Grafana Cloud.
 
-## grafana.otlp.onprem.protocol
+### grafana.otlp.onprem.protocol
 
-The protocol used to send OTLP data. Can be either `http/protobuf` or `grpc` (default).
+The grafana.otlp.onprem.protocol used to send OTLP data. Can be either `http/protobuf` or `grpc` (default).
