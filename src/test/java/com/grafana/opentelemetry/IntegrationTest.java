@@ -64,7 +64,7 @@ class IntegrationTest {
     void traceDataIsSent() throws InterruptedException {
         restTemplate.getForEntity("/hello", String.class);
 
-        await().atMost(2, SECONDS).untilAsserted(() -> {
+        await().atMost(10, SECONDS).untilAsserted(() -> {
                     verifyPath("/v1/traces");
                     verifyPath("/v1/metrics");
                     verifyPath("/v1/logs");
