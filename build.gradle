@@ -58,10 +58,9 @@ dependencies {
     def otelVersion = dependencyManagement.importedProperties['opentelemetry.version']
     implementation "io.opentelemetry:opentelemetry-exporter-otlp"
     implementation "io.opentelemetry:opentelemetry-exporter-logging" // only for debug
-    implementation "io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:$otelVersion-alpha"
-    implementation "io.opentelemetry.instrumentation:opentelemetry-log4j-appender-2.17:$otelVersion-alpha"
-    compileOnly 'org.springframework.boot:spring-boot-starter-log4j2'
-
+    runtimeOnly "io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:$otelVersion-alpha"
+    runtimeOnly "io.opentelemetry.instrumentation:opentelemetry-log4j-appender-2.17:$otelVersion-alpha"
+    implementation "io.opentelemetry:opentelemetry-semconv:$otelVersion-alpha"
     runtimeOnly "io.opentelemetry.instrumentation:opentelemetry-resources:$otelVersion-alpha"
     implementation "io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion"
     runtimeOnly "io.micrometer:micrometer-tracing-bridge-otel"
