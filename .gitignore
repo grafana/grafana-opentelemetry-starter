@@ -2,3 +2,4 @@
 build/
 .env
 .idea/
+README.generated
