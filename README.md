@@ -1,7 +1,7 @@
 # Overview
 
 The grafana-opentelemetry-starter makes it easy to use Metrics, Traces, and Logs with OpenTelemetry
-in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack).
+in Grafana Cloud, using the Grafana Agent or OpenTelemetry Collector (for Grafana Cloud or Grafana OSS stack).
 
 # Compatibility
 
@@ -16,7 +16,7 @@ in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack).
 Add the following dependency to your `build.gradle`
 
 ```groovy
-implementation 'com.grafana:grafana-opentelemetry-starter:1.1.0'
+implementation 'com.grafana:grafana-opentelemetry-starter:1.2.0'
 ```
 
 ... or `pom.xml`
@@ -25,7 +25,7 @@ implementation 'com.grafana:grafana-opentelemetry-starter:1.1.0'
 <dependency>
     <groupId>com.grafana</groupId>
     <artifactId>grafana-opentelemetry-starter</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -84,7 +84,7 @@ To register a log4j2 appender, create a new log4j2.xml file under your projectâ€
 
 ## Configuration
 
-Finally, configure your application.yaml or application.properties either for Grafana Cloud or Grafana Agent.
+Finally, configure your application.yaml or application.properties either for Grafana Cloud, Grafana Agent or OpenTelemetry Collector.
 
 ### Grafana Cloud
 
@@ -115,6 +115,14 @@ spring:
     name: demo-app
 ```
 
+### OpenTelemetry Collector
+
+The configuration in the application is identical to the Grafana agent. 
+Whenever this documentation refers to "Grafana Agent", the OpenTelemetry Collector configuration is meant as well.
+
+If you the OpenTelemetry Collector, you can also use the recommended [Spring Boot Dashboard](https://grafana.com/grafana/dashboards/18887), which relies on the prometheus naming conventions (e.g. `_seconds` in the metric names).
+
+- [How to configure the OpenTelemtry Collector](https://grafana.com/docs/opentelemetry/collector/send-otlp-to-grafana-cloud-databases/)
 - [How to configure the Grafana Agent](https://grafana.com/docs/opentelemetry/instrumentation/grafana-agent/)
 - [Reference](#properties) of all configuration properties
 
@@ -138,7 +146,7 @@ grafana:
 - All configuration properties are described in the [reference](#properties).
 - The `grafana.otlp.cloud` and `grafana.otlp.onprem` properties are mutually exclusive.
 - As usual in Spring Boot, you can use environment variables to supply some of the properties, which is especially
-  useful for secrets, e.g. `GRAFANA_OTLP_CLOUD_API_KEY` instead of `grafana.otlp.cloud.grafana.otlp.cloud.apiKey`.
+  useful for secrets, e.g. `GRAFANA_OTLP_CLOUD_API_KEY` instead of `grafana.otlp.cloud.apiKey`.
 - In addition, you can use all system properties or environment variables from the
   [SDK auto-configuration](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure) -
   which will take precedence.
@@ -151,7 +159,7 @@ For example, if you set the `spring.application.name` in `application.yaml`,
 you will get the following log output:
 
 ```
-11:53:07.724 [main] INFO  c.g.o.OpenTelemetryConfig - using config properties: {otel.exporter.otlp.grafana.otlp.onprem.endpoint=https://otlp-gateway-prod-eu-west-0.grafana.net/otlp, otel.logs.exporter=otlp, otel.traces.exporter=otlp, otel.exporter.otlp.headers=Authorization=Basic NTUz..., otel.exporter.otlp.grafana.otlp.onprem.protocol=http/protobuf, otel.resource.attributes=service.name=demo-app, otel.metrics.exporter=otlp}
+11:53:07.724 [main] INFO  c.g.o.OpenTelemetryConfig - using config properties: {otel.exporter.otlp.endpoint=https://otlp-gateway-prod-eu-west-0.grafana.net/otlp, otel.logs.exporter=otlp, otel.traces.exporter=otlp, otel.exporter.otlp.headers=Authorization=Basic NTUz..., otel.exporter.otlp.protocol=http/protobuf, otel.resource.attributes=service.name=demo-app, otel.metrics.exporter=otlp}
 ```
 
 (The `otel.exporter.otlp.headers` field is abbreviated for security reasons.)

@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 1.2.0. (2023-06-06)
+
+* Set the base time unit to "seconds", which is required for compatability with the recommended [Spring Boot Dashboard](https://grafana.com/grafana/dashboards/18887) 
+
 ## Version 1.1.0. (2023-06-02)
 
 * Add support for log4j
