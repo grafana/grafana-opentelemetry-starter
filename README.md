@@ -146,7 +146,6 @@ Once you've started your application, you can use this [Spring Boot Dashboard](h
 - In addition, you can use all system properties or environment variables from the
   [SDK auto-configuration](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure) -
   which will take precedence.
-variables (for expert config))
 
 ## Troubleshooting
 
@@ -216,6 +215,6 @@ Leave `grafana.otlp.cloud.apiKey` empty when using the Grafana Agent.
 
 The grafana.otlp.onprem.endpoint of the Grafana Agent.
 
-You do not need to set an `endpoint` value if your Grafana Agent is running locally with the default http/protobuf grafana.otlp.onprem.endpoint (http://localhost:4318).
+You do not need to set an `grafana.otlp.onprem.endpoint` value if your Grafana Agent is running locally with the default http/protobuf grafana.otlp.onprem.endpoint (http://localhost:4318).
 
 Use `cloud.grafana.otlp.cloud.zone` instead of `grafana.otlp.onprem.endpoint` when using the Grafana Cloud.
