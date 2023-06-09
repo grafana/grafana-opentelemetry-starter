@@ -162,7 +162,7 @@ you will get the following log output:
 (The `otel.exporter.otlp.headers` field is abbreviated for security reasons.)
 
 If you still don't see your logs, traces and metrics in Grafana, even though the configuration looks good, 
-you can turn on [debug loggong](#grafanaotlpdebuglogging) to what data the application is emitting.
+you can turn on [debug logging](#grafanaotlpdebuglogging) to what data the application is emitting.
 
 ## Properties
 
