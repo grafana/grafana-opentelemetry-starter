@@ -1,7 +1,7 @@
 # Overview
 
 The grafana-opentelemetry-starter makes it easy to use Metrics, Traces, and Logs with OpenTelemetry
-in Grafana Cloud, using the Grafana Agent or OpenTelemetry Collector (for Grafana Cloud or Grafana OSS stack).
+in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack).
 
 # Compatibility
 
@@ -85,7 +85,7 @@ To register a log4j2 appender, create a new log4j2.xml file under your projectâ€
 
 ## Configuration
 
-Finally, configure your application.yaml or application.properties either for Grafana Cloud, Grafana Agent or OpenTelemetry Collector.
+Finally, configure your application.yaml or application.properties either for Grafana Cloud or Grafana Agent.
 
 ### Grafana Cloud
 
@@ -116,14 +116,6 @@ spring:
     name: demo-app
 ```
 
-### OpenTelemetry Collector
-
-The configuration in the application is identical to the Grafana Agent. 
-Whenever this documentation refers to "Grafana Agent", the OpenTelemetry Collector configuration is meant as well.
-
-If you the OpenTelemetry Collector, you can also use the recommended [Spring Boot Dashboard](https://grafana.com/grafana/dashboards/18887), which relies on the prometheus naming conventions (e.g. `_seconds` in the metric names).
-
-- [How to configure the OpenTelemtry Collector](https://grafana.com/docs/opentelemetry/collector/send-otlp-to-grafana-cloud-databases/)
 - [How to configure the Grafana Agent](https://grafana.com/docs/opentelemetry/instrumentation/grafana-agent/)
 - [Reference](#properties) of all configuration properties
 
@@ -141,6 +133,10 @@ grafana:
       endpoint: http://localhost:4317
       protocol: grpc
 ```
+
+## Grafana Dashboard
+
+Once you've started your application, you can use this [Spring Boot Dashboard](https://grafana.com/grafana/dashboards/18887)
 
 # Reference
 
