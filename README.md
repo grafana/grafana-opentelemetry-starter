@@ -117,7 +117,7 @@ spring:
 ```
 
 - [How to configure the Grafana Agent](https://grafana.com/docs/opentelemetry/instrumentation/grafana-agent/)
-- [Reference](#properties) of all configuration properties
+- Refer to the [Properties section](#properties) for details about configuration properties
 
 If you have a changed the configuration of the Grafana Agent,
 you can specify the endpoint and protocol.
