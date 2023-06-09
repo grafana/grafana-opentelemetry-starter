@@ -49,7 +49,8 @@ To register a logback appender, create a new logback-spring.xml (or logback.xml)
     </encoder>
   </appender>
   <appender name="OpenTelemetry"
-            class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+            class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender"
+            captureExperimentalAttributes="true">
   </appender>
 
   <root level="INFO">
@@ -71,7 +72,7 @@ To register a log4j2 appender, create a new log4j2.xml file under your projectâ€
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
     </Console>
-    <OpenTelemetry name="OpenTelemetryAppender"/>
+    <OpenTelemetry name="OpenTelemetryAppender" captureExperimentalAttributes="true"/>
   </Appenders>
   <Loggers>
     <Root level="info">
