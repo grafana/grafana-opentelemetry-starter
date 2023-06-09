@@ -117,7 +117,7 @@ spring:
 
 ### OpenTelemetry Collector
 
-The configuration in the application is identical to the Grafana agent. 
+The configuration in the application is identical to the Grafana Agent. 
 Whenever this documentation refers to "Grafana Agent", the OpenTelemetry Collector configuration is meant as well.
 
 If you the OpenTelemetry Collector, you can also use the recommended [Spring Boot Dashboard](https://grafana.com/grafana/dashboards/18887), which relies on the prometheus naming conventions (e.g. `_seconds` in the metric names).
@@ -126,7 +126,7 @@ If you the OpenTelemetry Collector, you can also use the recommended [Spring Boo
 - [How to configure the Grafana Agent](https://grafana.com/docs/opentelemetry/instrumentation/grafana-agent/)
 - [Reference](#properties) of all configuration properties
 
-If you have a changed the configuration of the grafana agent,
+If you have a changed the configuration of the Grafana Agent,
 you can specify the endpoint and protocol.
 This example uses the default values - it is equivalent to the example above:
 
