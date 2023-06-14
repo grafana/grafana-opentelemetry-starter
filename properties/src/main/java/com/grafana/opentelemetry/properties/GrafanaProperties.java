@@ -1,16 +1,19 @@
-package com.grafana.opentelemetry;
-
-import org.springframework.boot.context.properties.ConfigurationProperties;
+package com.grafana.opentelemetry.properties;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@ConfigurationProperties(prefix = "grafana.otlp")
 public class GrafanaProperties {
 
-    private CloudProperties cloud = new CloudProperties();
+    public GrafanaProperties(CloudProperties cloud, OnPremProperties onPrem, Boolean debugLogging) {
+        this.cloud = cloud;
+        this.onPrem = onPrem;
+        this.debugLogging = Boolean.TRUE.equals(debugLogging);
+    }
 
-    private OnPremProperties onPrem = new OnPremProperties();
+    private CloudProperties cloud;
+
+    private OnPremProperties onPrem;
 
     /**
      * Adds global (resource) attributes to metrics, traces and logs.
@@ -32,7 +35,7 @@ public class GrafanaProperties {
      *       <li>'Implementation-Title' in jar's MANIFEST.MF</li>
      *     </ol>
      *
-     *<p>
+     * <p>
      * The following block can be added to build.gradle to set the application name and version
      * in the jar's MANIFEST.MF:
      * <pre>
@@ -90,6 +93,13 @@ public class GrafanaProperties {
     }
 
     public static class CloudProperties {
+
+        public CloudProperties(String zone, Integer instanceId, String apiKey) {
+            this.zone = zone;
+            this.instanceId = instanceId;
+            this.apiKey = apiKey;
+        }
+
         /**
          * The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
          * <p>
@@ -102,7 +112,7 @@ public class GrafanaProperties {
          * <p>
          * Leave <code>instanceId</code> empty when using the Grafana Agent.
          */
-        private int instanceId;
+        private Integer instanceId;
 
         /**
          * Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com.
@@ -120,11 +130,11 @@ public class GrafanaProperties {
             this.zone = zone;
         }
 
-        public int getInstanceId() {
+        public Integer getInstanceId() {
             return instanceId;
         }
 
-        public void setInstanceId(int instanceId) {
+        public void setInstanceId(Integer instanceId) {
             this.instanceId = instanceId;
         }
 
@@ -138,6 +148,11 @@ public class GrafanaProperties {
     }
 
     public static class OnPremProperties {
+        public OnPremProperties(String endpoint, String protocol) {
+            this.endpoint = endpoint;
+            this.protocol = protocol;
+        }
+
         /**
          * The endpoint of the Grafana Agent.
          * <p>

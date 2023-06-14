@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.context.TestPropertySource;
 
@@ -36,7 +37,7 @@ class IntegrationTest {
     private TestRestTemplate restTemplate;
 
     @Autowired
-    private GrafanaProperties properties;
+    private Environment environment;
 
     @Autowired
     private Optional<AutoConfiguredOpenTelemetrySdk> sdk;
@@ -50,7 +51,7 @@ class IntegrationTest {
 
     @Test
     void testProperties() {
-        Assertions.assertThat(properties.getCloud().getZone()).isEqualTo("prod-eu-west-0");
+        Assertions.assertThat(OpenTelemetryConfig.getGrafanaProperties(environment).getCloud().getZone()).isEqualTo("prod-eu-west-0");
     }
 
     @Test
