@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 1.2.0. (2023-06-06)
+
+* Set the base time unit to "seconds" - which ensures future compatibility with upcoming versions of the Grafana Agent 
+* Support thread name for logging 
+
 ## Version 1.1.0. (2023-06-02)
 
 * Add support for log4j
