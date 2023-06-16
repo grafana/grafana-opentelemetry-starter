@@ -31,6 +31,9 @@ implementation 'com.grafana:grafana-opentelemetry-starter:1.2.0'
 
 ## Logging
 
+> ⚠️ Note that the logging appenders are not stable yet, so future version of this starer
+> might replace `captureExperimentalAttributes="true"` with something else.
+
 To implement logging, register an appender for one of the following frameworks.
 
 ### Logback
