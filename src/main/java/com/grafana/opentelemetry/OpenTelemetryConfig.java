@@ -54,18 +54,7 @@ public class OpenTelemetryConfig {
     private void addLogAppender(OpenTelemetry openTelemetry) {
         //the openTelemetry object is not used yet, but it will be used in the future, when the global otel instance is not used by default anymore
 
-        try {
-            Class.forName("ch.qos.logback.classic.Logger");
-            LogbackConfig.addLogbackAppender();
-        } catch (ClassNotFoundException e) {
-            //not using logback
-            try {
-                Class.forName("org.apache.logging.log4j.core.LoggerContext");
-                Log4jConfig.addLog4jAppender();
-            } catch (ClassNotFoundException ex) {
-                // not using log4j2
-            }
-
+        if (!LogbackConfig.tryAddAppender() && !Log4jConfig.tryAddAppender()) {
             logger.warn("no logging library found - OpenTelemetryAppender not added");
         }
     }

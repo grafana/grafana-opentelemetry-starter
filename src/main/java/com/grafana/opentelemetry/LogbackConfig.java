@@ -10,7 +10,13 @@ public class LogbackConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(LogbackConfig.class);
 
-    static void addLogbackAppender() {
+    static boolean tryAddAppender() {
+        try {
+            Class.forName("ch.qos.logback.classic.Logger");
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+
         ch.qos.logback.classic.Logger logbackLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getILoggerFactory().getLogger(Logger.ROOT_LOGGER_NAME);
 
         //check if appender has been added manually already
@@ -22,7 +28,7 @@ public class LogbackConfig {
         });
         if (found.get()) {
             logger.info("logback OpenTelemetryAppender has already been added");
-            return;
+            return true;
         }
 
         logger.info("adding logback OpenTelemetryAppender");
@@ -30,6 +36,7 @@ public class LogbackConfig {
         openTelemetryAppender.setCaptureExperimentalAttributes(true);
         openTelemetryAppender.start();
         logbackLogger.addAppender(openTelemetryAppender);
+        return true;
     }
 
 }

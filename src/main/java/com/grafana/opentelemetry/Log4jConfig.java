@@ -13,14 +13,19 @@ public class Log4jConfig {
 
     private static final Logger logger = LogManager.getLogger(Log4jConfig.class);
 
-    static void addLog4jAppender() {
+    static boolean tryAddAppender() {
+        try {
+            Class.forName("org.apache.logging.log4j.core.LoggerContext");
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
         LoggerContext context = (LoggerContext) LogManager.getContext(false);
         Configuration config = context.getConfiguration();
         boolean found = config.getAppenders().values().stream()
                 .anyMatch(a -> a instanceof io.opentelemetry.instrumentation.log4j.appender.v2_17.OpenTelemetryAppender);
         if (found) {
             logger.info("log4j2 OpenTelemetryAppender has already been added");
-            return;
+            return true;
         }
 
         logger.info("adding log4j OpenTelemetryAppender");
@@ -33,6 +38,7 @@ public class Log4jConfig {
         config.addAppender(appender);
 
         updateLoggers(appender, config);
+        return true;
     }
 
     private static void updateLoggers(Appender appender, Configuration config) {
