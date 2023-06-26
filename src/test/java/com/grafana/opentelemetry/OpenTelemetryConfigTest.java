@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -48,9 +49,9 @@ class OpenTelemetryConfigTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("basicAuthCases")
-    void getBasicAuthHeader(String name, Optional<String> expected, String expectedOutput,
+    void getBasicAuthHeader(String name, Map<String, String> expected, String expectedOutput,
             String apiKey, int instanceId, CapturedOutput output) {
-        Optional<String> basicAuthHeader = OpenTelemetryConfig.getBasicAuthHeader(instanceId, apiKey);
+        Map<String, String> basicAuthHeader = OpenTelemetryConfig.getHeaders(instanceId, apiKey);
         Assertions.assertThat(basicAuthHeader).isEqualTo(expected);
         Assertions.assertThat(output).contains(expectedOutput);
     }
@@ -58,16 +59,16 @@ class OpenTelemetryConfigTest {
     private static Stream<Arguments> basicAuthCases() {
         return Stream.of(
                 Arguments.of("valid basic auth",
-                        Optional.of("Authorization=Basic MTIyMzQ1OmFwaUtleQ=="), "",
+                        Map.of("Authorization", "Basic MTIyMzQ1OmFwaUtleQ=="), "",
                         "apiKey", 122345),
                 Arguments.of("API key and instanceId missing",
-                        Optional.empty(), "",
+                        Collections.emptyMap(), "",
                         " ", 12345),
                 Arguments.of("API key blank",
-                        Optional.empty(), "found grafana.otlp.cloud.instanceId but no grafana.otlp.cloud.apiKey",
+                        Collections.emptyMap(), "found grafana.otlp.cloud.instanceId but no grafana.otlp.cloud.apiKey",
                         " ", 12345),
                 Arguments.of("instanceId 0",
-                        Optional.empty(), "found grafana.otlp.cloud.apiKey but no grafana.otlp.cloud.instanceId",
+                        Collections.emptyMap(), "found grafana.otlp.cloud.apiKey but no grafana.otlp.cloud.instanceId",
                         "apiKey", 0)
         );
     }
@@ -79,9 +80,9 @@ class OpenTelemetryConfigTest {
                      String expectedOutput,
                      String zone,
                      String endpoint,
-                     Optional<String> authHeader,
+                     Map<String, String> headers,
                      CapturedOutput output) {
-        Assertions.assertThat(OpenTelemetryConfig.getEndpoint(endpoint, zone, authHeader)).isEqualTo(expected);
+        Assertions.assertThat(OpenTelemetryConfig.getEndpoint(endpoint, zone, headers)).isEqualTo(expected);
         Assertions.assertThat(output).contains(expectedOutput);
     }
 
@@ -89,52 +90,26 @@ class OpenTelemetryConfigTest {
         return Stream.of(
                 Arguments.of("only zone",
                         Optional.of("https://otlp-gateway-zone.grafana.net/otlp"), "",
-                        "zone", "", Optional.of("apiKey")),
+                        "zone", "", Map.of("auth", "apiKey")),
                 Arguments.of("only onprem endpoint",
                         Optional.of("endpoint"), "",
-                        "", "endpoint", Optional.empty()),
+                        "", "endpoint", Collections.emptyMap()),
                 Arguments.of("both with cloud",
                         Optional.of("https://otlp-gateway-zone.grafana.net/otlp"),
                         "ignoring grafana.otlp.onprem.endpoint, because grafana.otlp.cloud.instanceId was found",
-                        "zone", "endpoint", Optional.of("key")),
+                        "zone", "endpoint", Map.of("auth", "apiKey")),
                 Arguments.of("zone without instanceId",
                         Optional.of("endpoint"),
                         "ignoring grafana.otlp.cloud.zone, because grafana.otlp.cloud.instanceId was not found",
-                        "zone", "endpoint", Optional.empty()),
+                        "zone", "endpoint", Collections.emptyMap()),
                 Arguments.of("missing zone",
                         Optional.empty(),
                         "please specify grafana.otlp.cloud.zone",
-                        " ", " ", Optional.of("key")),
+                        " ", " ", Map.of("auth", "apiKey")),
                 Arguments.of("onprem endpoint not set",
                         Optional.empty(),
-                        "grafana.otlp.onprem.endpoint not found, using default endpoint for otel.exporter.otlp.protocol",
-                        " ", " ", Optional.empty())
-        );
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("protocolCases")
-    void getProtocol(String name, String expected, String expectedOutput,
-            String protocol, Optional<String> authHeader, CapturedOutput output) {
-        Assertions.assertThat(OpenTelemetryConfig.getProtocol(protocol, authHeader)).isEqualTo(expected);
-        Assertions.assertThat(output).contains(expectedOutput);
-    }
-
-    private static Stream<Arguments> protocolCases() {
-        return Stream.of(
-                Arguments.of("cloud",
-                        "http/protobuf", "",
-                        "", Optional.of("apiKey")),
-                Arguments.of("cloud and proto",
-                        "http/protobuf",
-                        "ignoring grafana.otlp.onprem.protocol, because grafana.otlp.cloud.instanceId was found",
-                        "grpc", Optional.of("apiKey")),
-                Arguments.of("onprem",
-                        "grpc", "",
-                        "", Optional.empty()),
-                Arguments.of("onprem and proto",
-                        "http/protobuf", "",
-                        "http/protobuf", Optional.empty())
+                        "grafana.otlp.onprem.endpoint not found, using default endpoint",
+                        " ", " ", Collections.emptyMap())
         );
     }
 

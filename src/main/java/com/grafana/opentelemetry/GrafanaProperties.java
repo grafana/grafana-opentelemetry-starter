@@ -25,8 +25,6 @@ public class GrafanaProperties {
      * <p>
      * For <code>service.name</code> the order of precedence is:
      *     <ol>
-     *       <li>environment variable OTEL_SERVICE_NAME</li>
-     *       <li>environment variable OTEL_RESOURCE_ATTRIBUTES</li>
      *       <li>Manually set service_name in grafana.otlp.globalAttributes</li>
      *       <li>spring.application.name" in application.properties</li>
      *       <li>'Implementation-Title' in jar's MANIFEST.MF</li>
@@ -142,17 +140,11 @@ public class GrafanaProperties {
          * The endpoint of the Grafana Agent.
          * <p>
          * You do not need to set an <code>endpoint</code> value if your Grafana Agent is running locally
-         * with the default gRPC endpoint (localhost:4317).
+         * with the default http/protobuf endpoint (http://localhost:4318).
          * <p>
          * Use <code>cloud.zone</code> instead of <code>endpoint</code> when using the Grafana Cloud.
          */
         private String endpoint;
-
-        /**
-         * The protocol used to send OTLP data. Can be either <code>http/protobuf</code>
-         * or <code>grpc</code> (default).
-         */
-        private String protocol;
 
         public String getEndpoint() {
             return endpoint;
@@ -162,12 +154,5 @@ public class GrafanaProperties {
             this.endpoint = endpoint;
         }
 
-        public String getProtocol() {
-            return protocol;
-        }
-
-        public void setProtocol(String protocol) {
-            this.protocol = protocol;
-        }
     }
 }

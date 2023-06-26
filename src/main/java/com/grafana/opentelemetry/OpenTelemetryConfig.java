@@ -1,10 +1,10 @@
 package com.grafana.opentelemetry;
 
 import io.micrometer.core.instrument.Clock;
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.logging.LoggingMeterRegistry;
+import io.micrometer.registry.otlp.OtlpMeterRegistry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.instrumentation.micrometer.v1_5.OpenTelemetryMeterRegistry;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdkBuilder;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
@@ -12,6 +12,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -31,27 +33,33 @@ import java.util.stream.Collectors;
 @EnableConfigurationProperties(GrafanaProperties.class)
 public class OpenTelemetryConfig {
 
+    public static final String PROTOCOL = "http/protobuf";
+
     private static final Logger logger = LoggerFactory.getLogger(OpenTelemetryConfig.class);
 
     public static final String OTLP_HEADERS = "otel.exporter.otlp.headers";
 
     @Bean
-    public MeterRegistry openTelemetryMeterRegistry(OpenTelemetry openTelemetry, Clock clock) {
-        return OpenTelemetryMeterRegistry.builder(openTelemetry)
-                .setClock(clock)
-                .setBaseTimeUnit(TimeUnit.SECONDS)
-                .build();
+    public OtlpMeterRegistry openTelemetryMeterRegistry(Clock clock, GrafanaProperties properties,
+                                                        @Value("${spring.application.name:#{null}}") String applicationName) {
+        return new OtlpMeterRegistry(new MetricsOtlpConfig(translateProperties(properties, applicationName)), clock);
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "grafana.otlp.debugLogging", havingValue = "true", matchIfMissing = false)
+    public LoggingMeterRegistry loggingMeterRegistry() {
+        return new LoggingMeterRegistry();
     }
 
     @Bean
     public OpenTelemetry openTelemetry(Optional<AutoConfiguredOpenTelemetrySdk> sdk) {
         return sdk.<OpenTelemetry>map(AutoConfiguredOpenTelemetrySdk::getOpenTelemetrySdk)
-                       .orElse(OpenTelemetry.noop());
+                .orElse(OpenTelemetry.noop());
     }
 
     @Bean
     public AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk(GrafanaProperties properties,
-            @Value("${spring.application.name:#{null}}") String applicationName) {
+                                                                         @Value("${spring.application.name:#{null}}") String applicationName) {
         AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder();
 
         Map<String, String> configProperties = getConfigProperties(properties, applicationName);
@@ -69,50 +77,60 @@ public class OpenTelemetryConfig {
     private static Map<String, String> getConfigProperties(GrafanaProperties properties, String applicationName) {
         String exporters = properties.isDebugLogging() ? "logging,otlp" : "otlp";
 
-        GrafanaProperties.CloudProperties cloud = properties.getCloud();
-        GrafanaProperties.OnPremProperties onPrem = properties.getOnPrem();
-        Optional<String> authHeader = getBasicAuthHeader(cloud.getInstanceId(), cloud.getApiKey());
+        TranslatedProperties p = translateProperties(properties, applicationName);
+
+        String resourceAttributes = p.getResourceAttributes().entrySet().stream()
+                .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))
+                .collect(Collectors.joining(","));
+
         Map<String, String> configProperties = new HashMap<>(Map.of(
-                "otel.resource.attributes", getResourceAttributes(properties, applicationName),
-                "otel.exporter.otlp.protocol", getProtocol(onPrem.getProtocol(), authHeader),
+                "otel.resource.attributes", resourceAttributes,
+                "otel.exporter.otlp.protocol", PROTOCOL,
                 "otel.traces.exporter", exporters,
-                "otel.metrics.exporter", exporters,
                 "otel.logs.exporter", exporters
         ));
-        authHeader.ifPresent(s -> configProperties.put(OTLP_HEADERS, s));
-        getEndpoint(onPrem.getEndpoint(), cloud.getZone(), authHeader)
-                .ifPresent(s -> configProperties.put("otel.exporter.otlp.endpoint", s));
+        if (!p.getHeaders().isEmpty()) {
+            configProperties.put(OTLP_HEADERS,
+                    p.getHeaders().entrySet().stream().map(e -> String.format("%s=%s", e.getKey(), e.getValue())).collect(Collectors.joining(",")));
+        }
+        p.getEndpoint().ifPresent(s -> configProperties.put("otel.exporter.otlp.endpoint", s));
         return configProperties;
     }
 
-    static String getProtocol(String protocol, Optional<String> authHeader) {
-        boolean hasProto = Strings.isNotBlank(protocol);
-        if (authHeader.isPresent()) {
-            if (hasProto) {
-                logger.warn("ignoring grafana.otlp.onprem.protocol, because grafana.otlp.cloud.instanceId was found");
-            }
-            return "http/protobuf";
-        }
+    private static TranslatedProperties translateProperties(GrafanaProperties properties, String applicationName) {
+        GrafanaProperties.CloudProperties cloud = properties.getCloud();
+        Map<String, String> headers = getHeaders(cloud.getInstanceId(), cloud.getApiKey());
+        Optional<String> endpoint = getEndpoint(properties.getOnPrem().getEndpoint(), cloud.getZone(), headers);
+        Map<String, String> attributes = getResourceAttributes(properties, applicationName);
 
-        return hasProto ? protocol : "grpc";
+        return new TranslatedProperties(endpoint, headers, attributes);
     }
 
     static Map<String, String> maskAuthHeader(Map<String, String> configProperties) {
         return configProperties.entrySet()
-                       .stream()
-                       .collect(Collectors.toMap(
-                               Map.Entry::getKey,
-                               e -> {
-                                   String v = e.getValue();
-                                   return e.getKey().equals(OTLP_HEADERS) && v.length() > 24 ?
-                                                  v.substring(0, 24) + "..." : v;
-                               }));
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> {
+                            String v = e.getValue();
+                            return e.getKey().equals(OTLP_HEADERS) && v.length() > 24 ?
+                                    v.substring(0, 24) + "..." : v;
+                        }));
     }
 
-    static Optional<String> getEndpoint(String endpoint, String zone, Optional<String> authHeader) {
+    static Optional<String> getEndpoint(String endpoint, String zone, Map<String, String> headers) {
         boolean hasZone = Strings.isNotBlank(zone);
         boolean hasEndpoint = Strings.isNotBlank(endpoint);
-        if (authHeader.isPresent()) {
+        if (headers.isEmpty()) {
+            if (hasZone) {
+                logger.warn("ignoring grafana.otlp.cloud.zone, because grafana.otlp.cloud.instanceId was not found");
+            }
+            if (hasEndpoint) {
+                return Optional.of(endpoint);
+            } else {
+                logger.info("grafana.otlp.onprem.endpoint not found, using default endpoint");
+            }
+        } else {
             if (hasEndpoint) {
                 logger.warn("ignoring grafana.otlp.onprem.endpoint, because grafana.otlp.cloud.instanceId was found");
             }
@@ -121,26 +139,17 @@ public class OpenTelemetryConfig {
             } else {
                 logger.warn("please specify grafana.otlp.cloud.zone");
             }
-        } else {
-            if (hasZone) {
-                logger.warn("ignoring grafana.otlp.cloud.zone, because grafana.otlp.cloud.instanceId was not found");
-            }
-            if (hasEndpoint) {
-                return Optional.of(endpoint);
-            } else {
-                logger.info("grafana.otlp.onprem.endpoint not found, using default endpoint for otel.exporter.otlp.protocol");
-            }
         }
         return Optional.empty();
     }
 
-    static Optional<String> getBasicAuthHeader(int instanceId, String apiKey) {
+    static Map<String, String> getHeaders(int instanceId, String apiKey) {
         boolean hasKey = Strings.isNotBlank(apiKey);
         boolean hasId = instanceId != 0;
         if (hasKey && hasId) {
             String userPass = String.format("%s:%s", instanceId, apiKey);
-            return Optional.of(
-                    String.format("Authorization=Basic %s", Base64.getEncoder().encodeToString(userPass.getBytes())));
+            return Map.of("Authorization",
+                    String.format("Basic %s", Base64.getEncoder().encodeToString(userPass.getBytes())));
         }
 
         if (hasKey) {
@@ -150,10 +159,10 @@ public class OpenTelemetryConfig {
             logger.warn("found grafana.otlp.cloud.instanceId but no grafana.otlp.cloud.apiKey");
         }
 
-        return Optional.empty();
+        return Collections.emptyMap();
     }
 
-    private static String getResourceAttributes(GrafanaProperties properties, String applicationName) {
+    private static Map<String, String> getResourceAttributes(GrafanaProperties properties, String applicationName) {
         Map<String, String> resourceAttributes = properties.getGlobalAttributes();
 
         String manifestApplicationName = null;
@@ -186,14 +195,11 @@ public class OpenTelemetryConfig {
         }
         updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_INSTANCE_ID,
                 hostName, System.getenv("HOST"));
-
-        return resourceAttributes.entrySet().stream()
-                       .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))
-                       .collect(Collectors.joining(","));
+        return resourceAttributes;
     }
 
     static void updateResourceAttribute(Map<String, String> resourceAttributes,
-            AttributeKey<String> key, String... overrides) {
+                                        AttributeKey<String> key, String... overrides) {
 
         if (!resourceAttributes.containsKey(key.getKey())) {
             for (String value : overrides) {
@@ -204,4 +210,5 @@ public class OpenTelemetryConfig {
             }
         }
     }
+
 }
