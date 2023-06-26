@@ -61,7 +61,7 @@ class IntegrationTest {
     }
 
     @Test
-    void traceDataIsSent() throws InterruptedException {
+    void dataIsSent() throws InterruptedException {
         restTemplate.getForEntity("/hello", String.class);
 
         await().atMost(10, SECONDS).untilAsserted(() -> {

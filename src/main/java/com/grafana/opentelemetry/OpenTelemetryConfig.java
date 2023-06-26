@@ -45,13 +45,34 @@ public class OpenTelemetryConfig {
 
     @Bean
     public OpenTelemetry openTelemetry(Optional<AutoConfiguredOpenTelemetrySdk> sdk) {
-        return sdk.<OpenTelemetry>map(AutoConfiguredOpenTelemetrySdk::getOpenTelemetrySdk)
-                       .orElse(OpenTelemetry.noop());
+        OpenTelemetry openTelemetry = sdk.<OpenTelemetry>map(AutoConfiguredOpenTelemetrySdk::getOpenTelemetrySdk)
+                .orElse(OpenTelemetry.noop());
+        addLogAppender(openTelemetry);
+        return openTelemetry;
+    }
+
+    private void addLogAppender(OpenTelemetry openTelemetry) {
+        //the openTelemetry object is not used yet, but it will be used in the future, when the global otel instance is not used by default anymore
+
+        try {
+            Class.forName("ch.qos.logback.classic.Logger");
+            LogbackConfig.addLogbackAppender();
+        } catch (ClassNotFoundException e) {
+            //not using logback
+            try {
+                Class.forName("org.apache.logging.log4j.core.LoggerContext");
+                Log4jConfig.addLog4jAppender();
+            } catch (ClassNotFoundException ex) {
+                // not using log4j2
+            }
+
+            logger.warn("no logging library found - OpenTelemetryAppender not added");
+        }
     }
 
     @Bean
     public AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk(GrafanaProperties properties,
-            @Value("${spring.application.name:#{null}}") String applicationName) {
+                                                                         @Value("${spring.application.name:#{null}}") String applicationName) {
         AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder();
 
         Map<String, String> configProperties = getConfigProperties(properties, applicationName);
@@ -99,14 +120,14 @@ public class OpenTelemetryConfig {
 
     static Map<String, String> maskAuthHeader(Map<String, String> configProperties) {
         return configProperties.entrySet()
-                       .stream()
-                       .collect(Collectors.toMap(
-                               Map.Entry::getKey,
-                               e -> {
-                                   String v = e.getValue();
-                                   return e.getKey().equals(OTLP_HEADERS) && v.length() > 24 ?
-                                                  v.substring(0, 24) + "..." : v;
-                               }));
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> {
+                            String v = e.getValue();
+                            return e.getKey().equals(OTLP_HEADERS) && v.length() > 24 ?
+                                    v.substring(0, 24) + "..." : v;
+                        }));
     }
 
     static Optional<String> getEndpoint(String endpoint, String zone, Optional<String> authHeader) {
@@ -188,12 +209,12 @@ public class OpenTelemetryConfig {
                 hostName, System.getenv("HOST"));
 
         return resourceAttributes.entrySet().stream()
-                       .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))
-                       .collect(Collectors.joining(","));
+                .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))
+                .collect(Collectors.joining(","));
     }
 
     static void updateResourceAttribute(Map<String, String> resourceAttributes,
-            AttributeKey<String> key, String... overrides) {
+                                        AttributeKey<String> key, String... overrides) {
 
         if (!resourceAttributes.containsKey(key.getKey())) {
             for (String value : overrides) {
