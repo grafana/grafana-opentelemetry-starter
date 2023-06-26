@@ -49,8 +49,8 @@ To register a logback appender, create a new logback-spring.xml (or logback.xml)
     </encoder>
   </appender>
   <appender name="OpenTelemetry"
-            class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender"
-            captureExperimentalAttributes="true">
+            class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+    <captureExperimentalAttributes>true</captureExperimentalAttributes>
   </appender>
 
   <root level="INFO">
