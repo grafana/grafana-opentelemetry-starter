@@ -11,12 +11,15 @@ in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack).
 | 3.0.4+              | 17+          | Use this starter in version 1.0.0 (only works with gradle)                               |
 | 2.x                 | 8+           | Use the [Java Agent](https://grafana.com/docs/opentelemetry/instrumentation/java-agent/) |
 
+Logging is supported with Logback and Log4j2 
+(a separate appender is added automatically, leaving your console or file appenders untouched).
+
 # Getting Started
 
 Add the following dependency to your `build.gradle`
 
 ```groovy
-implementation 'com.grafana:grafana-opentelemetry-starter:1.2.0'
+implementation 'com.grafana:grafana-opentelemetry-starter:1.3.0'
 ```
 
 ... or `pom.xml`
@@ -25,62 +28,8 @@ implementation 'com.grafana:grafana-opentelemetry-starter:1.2.0'
 <dependency>
     <groupId>com.grafana</groupId>
     <artifactId>grafana-opentelemetry-starter</artifactId>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
 </dependency>
-```
-
-## Logging
-
-To implement logging, register an appender for one of the following frameworks.
-
-### Logback
-
-To register a logback appender, create a new logback-spring.xml (or logback.xml) file under your project’s 
-`main/resources` directory and copy the following xml.
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-  <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>
-        %d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
-      </pattern>
-    </encoder>
-  </appender>
-  <appender name="OpenTelemetry"
-            class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender"
-            captureExperimentalAttributes="true">
-  </appender>
-
-  <root level="INFO">
-    <appender-ref ref="console"/>
-    <appender-ref ref="OpenTelemetry"/>
-  </root>
-</configuration>
-```
-
-### Log4j2
-
-To register a log4j2 appender, create a new log4j2.xml file under your project’s 
-`main/resources` directory and copy the following xml.
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<Configuration packages="io.opentelemetry.instrumentation.log4j.appender.v2_17">
-  <Appenders>
-    <Console name="Console" target="SYSTEM_OUT">
-      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
-    </Console>
-    <OpenTelemetry name="OpenTelemetryAppender" captureExperimentalAttributes="true"/>
-  </Appenders>
-  <Loggers>
-    <Root level="info">
-      <AppenderRef ref="OpenTelemetryAppender"/>
-      <AppenderRef ref="Console"/>
-    </Root>
-  </Loggers>
-</Configuration>
 ```
 
 ## Configuration
