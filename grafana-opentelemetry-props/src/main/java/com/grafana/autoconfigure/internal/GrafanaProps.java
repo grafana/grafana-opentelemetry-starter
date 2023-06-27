@@ -29,7 +29,7 @@ public class GrafanaProps {
 
     @Nullable
     public Map<String, String> getGlobalAttributes() {
-        return adapter.getMap("grafana.otlp.lobalAttributes");
+        return adapter.getMap("grafana.otlp.globalAttributes");
     }
 
     public CloudProperties getCloud() {
