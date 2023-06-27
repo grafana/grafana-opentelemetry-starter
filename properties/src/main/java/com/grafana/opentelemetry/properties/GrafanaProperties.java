@@ -1,13 +1,13 @@
 package com.grafana.opentelemetry.properties;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class GrafanaProperties {
 
-    public GrafanaProperties(CloudProperties cloud, OnPremProperties onPrem, Boolean debugLogging) {
+    public GrafanaProperties(CloudProperties cloud, OnPremProperties onPrem, Map<String, String> globalAttributes, Boolean debugLogging) {
         this.cloud = cloud;
         this.onPrem = onPrem;
+        this.globalAttributes = globalAttributes;
         this.debugLogging = Boolean.TRUE.equals(debugLogging);
     }
 
@@ -54,7 +54,7 @@ public class GrafanaProperties {
      *    <li>environment variable HOST</li>
      *   </ol>
      */
-    private final Map<String, String> globalAttributes = new HashMap<>();
+    private final Map<String, String> globalAttributes;
 
     /**
      * Log all metrics, traces, and logs that are created for debugging purposes

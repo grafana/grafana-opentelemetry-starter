@@ -31,6 +31,7 @@ public class PropertiesReader {
                         adapter.getString("grafana.otlp.onprem.endpoint"),
                         adapter.getString("grafana.otlp.onprem.protocol")
                 ),
+                adapter.getStringMap("grafana.otlp.globalAttributes"),
                 adapter.getBoolean("grafana.otlp.debugLogging"));
     }
 

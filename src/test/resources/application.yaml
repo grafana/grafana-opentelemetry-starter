@@ -1,4 +1,6 @@
 grafana:
   otlp:
+    globalAttributes:
+      foo: bar
     cloud:
       zone: prod-eu-west-0
