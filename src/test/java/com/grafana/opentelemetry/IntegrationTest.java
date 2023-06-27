@@ -1,5 +1,6 @@
 package com.grafana.opentelemetry;
 
+import com.grafana.opentelemetry.properties.GrafanaProperties;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -10,9 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.context.TestPropertySource;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -36,7 +39,7 @@ class IntegrationTest {
     private TestRestTemplate restTemplate;
 
     @Autowired
-    private GrafanaProperties properties;
+    private Environment environment;
 
     @Autowired
     private Optional<AutoConfiguredOpenTelemetrySdk> sdk;
@@ -50,6 +53,8 @@ class IntegrationTest {
 
     @Test
     void testProperties() {
+        GrafanaProperties properties = OpenTelemetryConfig.getGrafanaProperties(environment);
+        Assertions.assertThat(properties.getGlobalAttributes()).containsOnly(Map.entry("foo", "bar"));
         Assertions.assertThat(properties.getCloud().getZone()).isEqualTo("prod-eu-west-0");
     }
 

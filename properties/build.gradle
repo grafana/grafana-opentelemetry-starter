@@ -1,0 +1,105 @@
+plugins {
+    id 'java-library'
+}
+
+group = "com.grafana"
+version = project.properties['grafanaOtelStarterVersion']
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots")
+        mavenContent {
+            snapshotsOnly()
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+
+jar {
+    // allows maven to read the artifact (by default, it's "plain")
+    archiveClassifier.set('')
+}
+
+dependencies {
+    compileOnly 'org.slf4j:slf4j-api:1.7.36'
+    compileOnly 'io.opentelemetry:opentelemetry-semconv:1.25.0-alpha'
+    testImplementation 'io.opentelemetry:opentelemetry-semconv:1.25.0-alpha'
+    //is there a better scope that has compile and test?
+
+    // it's not a spring project, but it collects some useful test libraries, like for output capturing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.7.13'
+}
+
+// check out how to do this correctly - what can be reused from parent project
+//publishing {
+//    publications {
+//        mavenJava(MavenPublication) {
+//            from components.java
+//
+//            pom {
+//                name  = 'Grafana OpenTelemetry Properties reader'
+//                description = 'Spring boot starter to use Metrics, Traces, and Logs with OpenTelemetry in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack)'
+//                url = 'https://github.com/grafana/grafana-opentelemetry-starter'
+//                licenses {
+//                    license {
+//                        name = 'The Apache License, Version 2.0'
+//                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//                    }
+//                }
+//                developers {
+//                    developer {
+//                        id = "zeitlinger"
+//                        name = "Gregor Zeitlinger"
+//                        email = "gregor.zeitlinger@grafana.com"
+//                    }
+//                }
+//                scm {
+//                    connection = 'scm:git:git://github.com/grafana/grafana-opentelemetry-starter.git'
+//                    developerConnection = 'scm:git:ssh://github.com/grafana/grafana-opentelemetry-starter.git'
+//                    url = 'https://github.com/grafana/grafana-opentelemetry-starter'
+//                }
+//            }
+//        }
+//    }
+//    repositories {
+//        maven {
+//            name = 'OSSRH'
+//            url = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+//
+//            credentials {
+//                username = System.getenv('OSSRH_USERNAME')
+//                password = System.getenv('OSSRH_PASSWORD')
+//            }
+//        }
+//    }
+//}
+//
+//nexusPublishing {
+//    repositories {
+//        sonatype {
+//            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+//            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+//
+//            username = System.getenv("OSSRH_USERNAME")
+//            password = System.getenv("OSSRH_PASSWORD")
+//        }
+//    }
+//}
+//
+//signing {
+//    sign publishing.publications.mavenJava
+//    useInMemoryPgpKeys(System.getenv('SIGNING_KEY'), System.getenv('SIGNING_PASSWORD'))
+//}

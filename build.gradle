@@ -41,6 +41,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     def otelVersion = dependencyManagement.importedProperties['opentelemetry.version']
+    implementation(project(':properties'))
     implementation "io.opentelemetry:opentelemetry-exporter-otlp"
     implementation "io.opentelemetry:opentelemetry-exporter-otlp-logs:$otelVersion-alpha"
     implementation "io.opentelemetry:opentelemetry-exporter-logging" // only for debug
