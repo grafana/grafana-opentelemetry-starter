@@ -11,6 +11,9 @@ in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack).
 | 3.0.4+              | 17+          | Use this starter in version 1.0.0 (only works with gradle)                               |
 | 2.x                 | 8+           | Use the [Java Agent](https://grafana.com/docs/opentelemetry/instrumentation/java-agent/) |
 
+Logging is supported with Logback and Log4j2 
+(a separate appender is added automatically, leaving your console or file appenders untouched).
+
 # Getting Started
 
 Add the following dependency to your `build.gradle`
