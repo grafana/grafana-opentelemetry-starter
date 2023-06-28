@@ -3,6 +3,7 @@
 ## Version 1.3.1. (2023-06-28)
                 
 * Revert base time unit to "milliseconds" - micrometer histograms have a lower bound of 1 - regardless of the unit (and 1s is too large for server response times)
+* enable histograms for "http.server.requests" 
 
 ## Version 1.3.0. (2023-06-26)
 
