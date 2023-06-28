@@ -19,7 +19,7 @@ Logging is supported with Logback and Log4j2
 Add the following dependency to your `build.gradle`
 
 ```groovy
-implementation 'com.grafana:grafana-opentelemetry-starter:1.3.0'
+implementation 'com.grafana:grafana-opentelemetry-starter:1.3.1'
 ```
 
 ... or `pom.xml`
@@ -28,7 +28,7 @@ implementation 'com.grafana:grafana-opentelemetry-starter:1.3.0'
 <dependency>
     <groupId>com.grafana</groupId>
     <artifactId>grafana-opentelemetry-starter</artifactId>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
 </dependency>
 ```
 

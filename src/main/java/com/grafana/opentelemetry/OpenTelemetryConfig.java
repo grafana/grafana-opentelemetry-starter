@@ -22,7 +22,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -39,7 +38,6 @@ public class OpenTelemetryConfig {
     public MeterRegistry openTelemetryMeterRegistry(OpenTelemetry openTelemetry, Clock clock) {
         return OpenTelemetryMeterRegistry.builder(openTelemetry)
                 .setClock(clock)
-                .setBaseTimeUnit(TimeUnit.SECONDS)
                 .build();
     }
 
