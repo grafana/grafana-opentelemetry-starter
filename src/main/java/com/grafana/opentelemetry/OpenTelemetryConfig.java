@@ -49,7 +49,7 @@ public class OpenTelemetryConfig {
         return openTelemetry;
     }
 
-    private void addLogAppender(OpenTelemetry openTelemetry) {
+    private void addLogAppender(@SuppressWarnings("unused") OpenTelemetry openTelemetry) {
         //the openTelemetry object is not used yet, but it will be used in the future, when the global otel instance is not used by default anymore
 
         if (!LogbackConfig.tryAddAppender() && !Log4jConfig.tryAddAppender()) {
