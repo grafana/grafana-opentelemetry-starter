@@ -7,25 +7,22 @@ import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.Logger;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 
 
-public class Log4jConfig {
+@ConditionalOnClass(name = "org.apache.logging.log4j.core.LoggerContext")
+public class Log4jConfig implements LogAppenderConfigurer {
 
     private static final Logger logger = LogManager.getLogger(Log4jConfig.class);
 
-    static boolean tryAddAppender() {
-        try {
-            Class.forName("org.apache.logging.log4j.core.LoggerContext");
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
+     public void tryAddAppender() {
         LoggerContext context = (LoggerContext) LogManager.getContext(false);
         Configuration config = context.getConfiguration();
         boolean found = config.getAppenders().values().stream()
                 .anyMatch(a -> a instanceof io.opentelemetry.instrumentation.log4j.appender.v2_17.OpenTelemetryAppender);
         if (found) {
             logger.info("log4j2 OpenTelemetryAppender has already been added");
-            return true;
+            return;
         }
 
         logger.info("adding log4j OpenTelemetryAppender");
@@ -38,7 +35,6 @@ public class Log4jConfig {
         config.addAppender(appender);
 
         updateLoggers(appender, config);
-        return true;
     }
 
     private static void updateLoggers(Appender appender, Configuration config) {

@@ -1,1 +1,4 @@
 com.grafana.opentelemetry.OpenTelemetryConfig
+com.grafana.opentelemetry.LogbackConfig
+com.grafana.opentelemetry.Log4jConfig
+

@@ -19,10 +19,7 @@ import org.springframework.context.annotation.PropertySource;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -38,24 +35,30 @@ public class OpenTelemetryConfig {
 
     @Bean
     public MeterRegistry openTelemetryMeterRegistry(OpenTelemetry openTelemetry, Clock clock) {
+        //note: add setting histogramGaugesEnabled in new otel version
         return OpenTelemetryMeterRegistry.builder(openTelemetry)
                 .setClock(clock)
                 .build();
     }
 
     @Bean
-    public OpenTelemetry openTelemetry(Optional<AutoConfiguredOpenTelemetrySdk> sdk) {
+    public OpenTelemetry openTelemetry(
+            Optional<AutoConfiguredOpenTelemetrySdk> sdk, List<LogAppenderConfigurer> logAppenderConfigurers) {
         OpenTelemetry openTelemetry = sdk.<OpenTelemetry>map(AutoConfiguredOpenTelemetrySdk::getOpenTelemetrySdk)
                 .orElse(OpenTelemetry.noop());
-        addLogAppender(openTelemetry);
+
+        tryAddAppender(openTelemetry, logAppenderConfigurers);
         return openTelemetry;
     }
 
-    private void addLogAppender(@SuppressWarnings("unused") OpenTelemetry openTelemetry) {
-        //the openTelemetry object is not used yet, but it will be used in the future, when the global otel instance is not used by default anymore
+    static void tryAddAppender(@SuppressWarnings("unused") OpenTelemetry openTelemetry,
+                               List<LogAppenderConfigurer> logAppenderConfigurers) {
+        // the openTelemetry object is not used yet, but it will be used in the future, when the global otel instance is not used by default anymore
 
-        if (!LogbackConfig.tryAddAppender() && !Log4jConfig.tryAddAppender()) {
+        if (logAppenderConfigurers.isEmpty()) {
             logger.warn("no logging library found - OpenTelemetryAppender not added");
+        } else {
+            logAppenderConfigurers.forEach(LogAppenderConfigurer::tryAddAppender);
         }
     }
 
