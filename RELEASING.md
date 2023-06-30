@@ -106,7 +106,7 @@ export SIGNING_PASSWORD=<passphrase of gpg key>
 
 From the project's root directory, run the following to export the environment variable and publish a release 
 to your local `~/.m2` repository.
-''
+
 ```shell
 ./gradlew publishToMavenLocal
 ```
