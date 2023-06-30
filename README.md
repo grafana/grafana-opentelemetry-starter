@@ -46,7 +46,7 @@ The Grafana Cloud OTLP Gateway is a managed service that is available in all Gra
 
 If you're just getting started with Grafana Cloud, you can [sign up for permanent free plan](https://grafana.com/products/cloud/).
 
-1. Click on "Details" button in the "Grafana" section when you log into grafana.com
+1. Click on "Details" button in the "Grafana" section on https://grafana.com/profile/org
 2. Copy "Instance ID" and "Zone" into the application.yaml below
 3. On the left side, click on "Security" and then on "API Keys" 
 4. Click on "Create API Key" (MetricsPublisher role) and copy the key into the application.yaml below
