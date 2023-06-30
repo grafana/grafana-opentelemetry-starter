@@ -1,1 +1,3 @@
 rootProject.name = 'grafana-opentelemetry-starter'
+
+include(":examples:log4j")

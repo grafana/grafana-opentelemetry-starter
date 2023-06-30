@@ -1,7 +1,7 @@
 # Overview
 
 The grafana-opentelemetry-starter makes it easy to use Metrics, Traces, and Logs with OpenTelemetry
-in Grafana Cloud or with Grafana Agent (for Grafana Cloud or Grafana OSS stack).
+in Grafana Cloud or the Grafana OSS stack.
 
 # Compatibility
 
@@ -19,7 +19,7 @@ Logging is supported with Logback and Log4j2
 Add the following dependency to your `build.gradle`
 
 ```groovy
-implementation 'com.grafana:grafana-opentelemetry-starter:1.3.0'
+implementation 'com.grafana:grafana-opentelemetry-starter:1.3.1'
 ```
 
 ... or `pom.xml`
@@ -28,17 +28,28 @@ implementation 'com.grafana:grafana-opentelemetry-starter:1.3.0'
 <dependency>
     <groupId>com.grafana</groupId>
     <artifactId>grafana-opentelemetry-starter</artifactId>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
 </dependency>
 ```
 
 ## Configuration
 
-Finally, configure your application.yaml or application.properties either for Grafana Cloud or Grafana Agent.
+Finally, configure your application.yaml (or application.properties) either for Grafana Cloud OTLP Gateway or Grafana Agent.
 
-### Grafana Cloud
+### Grafana Cloud OTLP Gateway
 
 > ⚠️ Please use the Grafana Agent configuration for production use cases.
+
+The easiest setup is to use the Grafana Cloud OTLP Gateway, because you don't need to run any service to transport
+the telemetry data to Grafana Cloud. 
+The Grafana Cloud OTLP Gateway is a managed service that is available in all Grafana Cloud plans.
+
+If you're just getting started with Grafana Cloud, you can [sign up for permanent free plan](https://grafana.com/products/cloud/).
+
+1. Click on "Details" button in the "Grafana" section on https://grafana.com/profile/org
+2. Copy "Instance ID" and "Zone" into the application.yaml below
+3. On the left side, click on "Security" and then on "API Keys" 
+4. Click on "Create API Key" (MetricsPublisher role) and copy the key into the application.yaml below
 
 application.yaml:
 
@@ -57,6 +68,10 @@ grafana:
 
 ### Grafana Agent
 
+The Grafana Agent is a single binary that can be deployed as a sidecar or daemonset in Kubernetes, or as a service 
+in your network. It provides an endpoint where the application can send its telemetry data to.
+The telemetry data is then forwarded to Grafana Cloud or a Grafana OSS stack.
+
 application.yaml:
 
 ```yaml
@@ -68,8 +83,7 @@ spring:
 - [How to configure the Grafana Agent](https://grafana.com/docs/opentelemetry/instrumentation/grafana-agent/)
 - Refer to the [Properties section](#properties) for details about configuration properties
 
-If you have a changed the configuration of the Grafana Agent,
-you can specify the endpoint and protocol.
+If you have changed the configuration of the Grafana Agent, you can specify the endpoint and protocol explicitly.
 This example uses the default values - it is equivalent to the example above:
 
 ```yaml
@@ -86,6 +100,8 @@ grafana:
 ## Grafana Dashboard
 
 Once you've started your application, you can use this [Spring Boot Dashboard](https://grafana.com/grafana/dashboards/18887)
+
+![](docs/dashboard.png)
 
 # Reference
 

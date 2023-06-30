@@ -7,6 +7,8 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.instrumentation.micrometer.v1_5.OpenTelemetryMeterRegistry;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdkBuilder;
+import io.opentelemetry.sdk.metrics.*;
+import io.opentelemetry.sdk.metrics.internal.aggregator.ExplicitBucketHistogramUtils;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
@@ -15,13 +17,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(GrafanaProperties.class)
+@PropertySource(value = {"classpath:grafana-otel-starter.properties"})
 public class OpenTelemetryConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(OpenTelemetryConfig.class);
@@ -37,6 +38,7 @@ public class OpenTelemetryConfig {
 
     @Bean
     public MeterRegistry openTelemetryMeterRegistry(OpenTelemetry openTelemetry, Clock clock) {
+        //note: add setting histogramGaugesEnabled in new otel version
         return OpenTelemetryMeterRegistry.builder(openTelemetry)
                 .setClock(clock)
                 .setBaseTimeUnit(TimeUnit.SECONDS)
@@ -44,18 +46,23 @@ public class OpenTelemetryConfig {
     }
 
     @Bean
-    public OpenTelemetry openTelemetry(Optional<AutoConfiguredOpenTelemetrySdk> sdk) {
+    public OpenTelemetry openTelemetry(
+            Optional<AutoConfiguredOpenTelemetrySdk> sdk, List<LogAppenderConfigurer> logAppenderConfigurers) {
         OpenTelemetry openTelemetry = sdk.<OpenTelemetry>map(AutoConfiguredOpenTelemetrySdk::getOpenTelemetrySdk)
                 .orElse(OpenTelemetry.noop());
-        addLogAppender(openTelemetry);
+
+        tryAddAppender(openTelemetry, logAppenderConfigurers);
         return openTelemetry;
     }
 
-    private void addLogAppender(OpenTelemetry openTelemetry) {
-        //the openTelemetry object is not used yet, but it will be used in the future, when the global otel instance is not used by default anymore
+    static void tryAddAppender(@SuppressWarnings("unused") OpenTelemetry openTelemetry,
+                               List<LogAppenderConfigurer> logAppenderConfigurers) {
+        // the openTelemetry object is not used yet, but it will be used in the future, when the global otel instance is not used by default anymore
 
-        if (!LogbackConfig.tryAddAppender() && !Log4jConfig.tryAddAppender()) {
+        if (logAppenderConfigurers.isEmpty()) {
             logger.warn("no logging library found - OpenTelemetryAppender not added");
+        } else {
+            logAppenderConfigurers.forEach(LogAppenderConfigurer::tryAddAppender);
         }
     }
 
@@ -63,6 +70,7 @@ public class OpenTelemetryConfig {
     public AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk(GrafanaProperties properties,
                                                                          @Value("${spring.application.name:#{null}}") String applicationName) {
         AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder();
+        builder.addMeterProviderCustomizer((b, configProperties) -> customizeMeterBuilder(b));
 
         Map<String, String> configProperties = getConfigProperties(properties, applicationName);
         builder.addPropertiesSupplier(() -> configProperties);
@@ -74,6 +82,21 @@ public class OpenTelemetryConfig {
             logger.warn("unable to create OpenTelemetry instance", e);
             return null;
         }
+    }
+
+    private static SdkMeterProviderBuilder customizeMeterBuilder(SdkMeterProviderBuilder meterProviderBuilder) {
+        // workaround for bug that bucket boundaries are not scaled correctly: bucket boundaries for seconds
+        List<Double> buckets = ExplicitBucketHistogramUtils.DEFAULT_HISTOGRAM_BUCKET_BOUNDARIES.stream()
+                .map(d -> d * 0.001).collect(Collectors.toList());
+
+        meterProviderBuilder.registerView(
+              InstrumentSelector.builder()
+                  .setType(InstrumentType.HISTOGRAM)
+                  .build(),
+              View.builder()
+                  .setAggregation(Aggregation.explicitBucketHistogram(buckets))
+                  .build());
+        return meterProviderBuilder;
     }
 
     private static Map<String, String> getConfigProperties(GrafanaProperties properties, String applicationName) {

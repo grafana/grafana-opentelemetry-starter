@@ -1,8 +1,14 @@
 # Changelog
 
-## Version 1.3.0. (2023-06-26)
-
+## Version 1.3.1. (2023-06-29)
+                
+* Fix histogram bucket boundaries - it was a lower bound of 1 - regardless of the unit (and 1s is too large for server response times)
+* enable histograms for "http.server.requests" 
 * Logger is configured automatically for Logback and Log4j2 - no need to add any configuration to your application (if you have configured the OpenTelemetry logger already, it will be used)
+
+## Version 1.3.0. (2023-06-26)
+                         
+* Broken for log4j - use 1.3.1 instead
 
 ## Version 1.2.0. (2023-06-06)
 

@@ -108,10 +108,5 @@ From the project's root directory, run the following to export the environment v
 to your local `~/.m2` repository.
 ''
 ```shell
-export OSSRH_USERNAME=<sonatype user>
-export OSSRH_PASSWORD=<sonatype password>
-export "SIGNING_KEY=$(cat ~/.gnupg/grafana-secret-key.txt)"
-export SIGNING_PASSWORD=<passphrase of gpg key>
-
 ./gradlew publishToMavenLocal
 ```
