@@ -57,8 +57,6 @@ dependencies {
 
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.springframework.boot:spring-boot-starter-web"
-    testImplementation "org.mock-server:mockserver-spring-test-listener:5.15.0"
-    testImplementation 'org.awaitility:awaitility:4.2.0'
 }
 
 publishing {
@@ -116,9 +114,9 @@ nexusPublishing {
     }
 }
 
-if (project.hasProperty("SIGNING_KEY")) {
+if (gradle.startParameter.taskNames.contains("publishToSonatype")) {
     signing {
         sign publishing.publications.mavenJava
-        useInMemoryPgpKeys(System.getenv('SIGNING_KEY'), System.getenv('SIGNING_PASSWORD'))
+        useInMemoryPgpKeys(System.getenv("SIGNING_KEY"), System.getenv("SIGNING_PASSWORD"))
     }
 }
