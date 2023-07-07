@@ -134,9 +134,9 @@ you will get the following log output:
 If you still don't see your logs, traces and metrics in Grafana, even though the configuration looks good, 
 you can turn on [debug logging](#grafanaotlpdebuglogging) to what data the application is emitting.
 
-## Properties
+### Properties
 
-### grafana.otlp.globalAttributes
+#### grafana.otlp.globalAttributes
 
 Adds global (resource) attributes to metrics, traces and logs.
 
@@ -152,31 +152,31 @@ For `service.name` the order of precedence is: <ol> <li>environment variable OTE
 
 The following block can be added to build.gradle to set the application name and version in the jar's MANIFEST.MF: <pre> bootJar { manifest { attributes('Implementation-Title': 'Demo Application', 'Implementation-Version': version) } } </pre> The `service.instance.id` attribute will be set if any of the following return a value. The list is in order of precedence. <ol> <li>InetAddress.getLocalHost().getHostName()</li> <li>environment variable HOSTNAME</li> <li>environment variable HOST</li> </ol>
 
-### grafana.otlp.debugLogging
+#### grafana.otlp.debugLogging
 
 Log all metrics, traces, and logs that are created for debugging purposes (in addition to sending them to the backend via OTLP).
 
 This will also send metrics and traces to Loki as an unintended side effect.
 
-### grafana.otlp.cloud.zone
+#### grafana.otlp.cloud.zone
 
 The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
 
 Use `onprem.grafana.otlp.onprem.endpoint` instead of `grafana.otlp.cloud.zone` when using the Grafana Agent.
 
-### grafana.otlp.cloud.instanceId
+#### grafana.otlp.cloud.instanceId
 
 The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
 
 Leave `grafana.otlp.cloud.instanceId` empty when using the Grafana Agent.
 
-### grafana.otlp.cloud.apiKey
+#### grafana.otlp.cloud.apiKey
 
 Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com. The role should be "MetricsPublisher"
 
 Leave `grafana.otlp.cloud.apiKey` empty when using the Grafana Agent.
 
-### grafana.otlp.onprem.endpoint
+#### grafana.otlp.onprem.endpoint
 
 The grafana.otlp.onprem.endpoint of the Grafana Agent.
 
@@ -184,6 +184,6 @@ You do not need to set an `grafana.otlp.onprem.endpoint` value if your Grafana A
 
 Use `cloud.grafana.otlp.cloud.zone` instead of `grafana.otlp.onprem.endpoint` when using the Grafana Cloud.
 
-### grafana.otlp.onprem.protocol
+#### grafana.otlp.onprem.protocol
 
 The grafana.otlp.onprem.protocol used to send OTLP data. Can be either `http/protobuf` or `grpc` (default).
