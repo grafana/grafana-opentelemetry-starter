@@ -15,7 +15,7 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(properties = {
         "grafana.otlp.enabled = false",
 })
-public class DisableIntegrationTest {
+public class DisableOpenTelemetryTest {
 
     @Test
     void starterIsNotApplied() {

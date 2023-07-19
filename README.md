@@ -160,7 +160,7 @@ This will also send metrics and traces to Loki as an unintended side effect.
 
 #### grafana.otlp.enabled
 
-Enable or disable the OpenTelemetry integration.
+Enable or disable the OpenTelemetry integration (default is enabled).
 
 This can be used to disable the integration without removing the dependency.
 

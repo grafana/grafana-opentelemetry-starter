@@ -1,8 +1,9 @@
 package com.grafana.opentelemetry;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "grafana.otlp")
 public class GrafanaProperties {
@@ -62,7 +63,7 @@ public class GrafanaProperties {
   private boolean debugLogging;
 
   /**
-   * Enable or disable the OpenTelemetry integration.
+   * Enable or disable the OpenTelemetry integration (default is enabled).
    *
    * <p>This can be used to disable the integration without removing the dependency.
    */
