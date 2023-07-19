@@ -96,6 +96,10 @@ public class GrafanaProperties {
         return enabled;
     }
 
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     public Map<String, String> getGlobalAttributes() {
         return globalAttributes;
     }

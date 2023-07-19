@@ -28,6 +28,7 @@ import static org.awaitility.Awaitility.await;
 })
 public class Log4jIntegrationTest {
 
+    @SuppressWarnings("unused")
     private MockServerClient mockServerClient;
 
     @Autowired
@@ -37,16 +38,16 @@ public class Log4jIntegrationTest {
     void logDataIsSent() {
         restTemplate.getForEntity("/hello", String.class);
 
-        await().atMost(10, SECONDS).untilAsserted(() -> verifyPath("/v1/logs"));
+        await().atMost(10, SECONDS).untilAsserted(this::verifyLogs);
     }
 
-    private void verifyPath(String path) {
+    private void verifyLogs() {
         // only assert that a request was received,
         // because the goal of this test is to make sure that data is still sent when dependabot upgrades
         // spring boot, which can also update the OpenTelemetry version
         mockServerClient.verify(HttpRequest.request()
                 .withMethod(HttpMethod.POST.name())
-                .withPath(path)
+                .withPath("/v1/logs")
                 .withHeader("Content-Type", "application/x-protobuf")
         );
     }

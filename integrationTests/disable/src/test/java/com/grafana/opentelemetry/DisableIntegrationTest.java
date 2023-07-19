@@ -6,6 +6,7 @@ import org.springframework.boot.test.autoconfigure.actuate.observability.AutoCon
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
+@SuppressWarnings("SpringBootApplicationProperties")
 @SpringBootTest(
         classes = {HelloController.class, DemoApplication.class, OpenTelemetryConfig.class}
 
