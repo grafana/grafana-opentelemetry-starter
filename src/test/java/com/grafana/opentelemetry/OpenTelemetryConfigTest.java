@@ -47,124 +47,131 @@ class OpenTelemetryConfigTest {
         Arguments.of("no value found", null, null, new String[] {" ", null}));
   }
 
+  record BasicAuthTestCase(
+      Optional<String> expected, String expectedOutput, String apiKey, int instanceId) {}
+
   @ParameterizedTest(name = "{0}")
   @MethodSource("basicAuthCases")
-  void getBasicAuthHeader(
-      String name,
-      Optional<String> expected,
-      String expectedOutput,
-      String apiKey,
-      int instanceId,
-      CapturedOutput output) {
-    Optional<String> basicAuthHeader = OpenTelemetryConfig.getBasicAuthHeader(instanceId, apiKey);
-    Assertions.assertThat(basicAuthHeader).isEqualTo(expected);
-    Assertions.assertThat(output).contains(expectedOutput);
+  void getBasicAuthHeader(String name, BasicAuthTestCase testCase, CapturedOutput output) {
+    Optional<String> basicAuthHeader =
+        OpenTelemetryConfig.getBasicAuthHeader(testCase.instanceId, testCase.apiKey);
+    Assertions.assertThat(basicAuthHeader).isEqualTo(testCase.expected);
+    Assertions.assertThat(output).contains(testCase.expectedOutput);
   }
 
   private static Stream<Arguments> basicAuthCases() {
     return Stream.of(
         Arguments.of(
             "valid basic auth",
-            Optional.of("Authorization=Basic MTIyMzQ1OmFwaUtleQ=="),
-            "",
-            "apiKey",
-            122345),
-        Arguments.of("API key and instanceId missing", Optional.empty(), "", " ", 12345),
+            new BasicAuthTestCase(
+                Optional.of("Authorization=Basic MTIyMzQ1OmFwaUtleQ=="), "", "apiKey", 122345)),
+        Arguments.of(
+            "API key and instanceId missing",
+            new BasicAuthTestCase(Optional.empty(), "", " ", 12345)),
         Arguments.of(
             "API key blank",
-            Optional.empty(),
-            "found grafana.otlp.cloud.instanceId but no grafana.otlp.cloud.apiKey",
-            " ",
-            12345),
+            new BasicAuthTestCase(
+                Optional.empty(),
+                "found grafana.otlp.cloud.instanceId but no grafana.otlp.cloud.apiKey",
+                " ",
+                12345)),
         Arguments.of(
             "instanceId 0",
-            Optional.empty(),
-            "found grafana.otlp.cloud.apiKey but no grafana.otlp.cloud.instanceId",
-            "apiKey",
-            0));
+            new BasicAuthTestCase(
+                Optional.empty(),
+                "found grafana.otlp.cloud.apiKey but no grafana.otlp.cloud.instanceId",
+                "apiKey",
+                0)));
   }
 
-  @ParameterizedTest(name = "{0}")
-  @MethodSource("endpointCases")
-  void getEndpoint(
-      String name,
+  record EndpointTestCase(
       Optional<String> expected,
       String expectedOutput,
       String zone,
       String endpoint,
-      Optional<String> authHeader,
-      CapturedOutput output) {
-    Assertions.assertThat(OpenTelemetryConfig.getEndpoint(endpoint, zone, authHeader))
-        .isEqualTo(expected);
-    Assertions.assertThat(output).contains(expectedOutput);
+      Optional<String> authHeader) {}
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("endpointCases")
+  void getEndpoint(String name, EndpointTestCase testCase, CapturedOutput output) {
+    Assertions.assertThat(
+            OpenTelemetryConfig.getEndpoint(testCase.endpoint, testCase.zone, testCase.authHeader))
+        .isEqualTo(testCase.expected);
+    Assertions.assertThat(output).contains(testCase.expectedOutput);
   }
 
   private static Stream<Arguments> endpointCases() {
     return Stream.of(
         Arguments.of(
             "only zone",
-            Optional.of("https://otlp-gateway-zone.grafana.net/otlp"),
-            "",
-            "zone",
-            "",
-            Optional.of("apiKey")),
+            new EndpointTestCase(
+                Optional.of("https://otlp-gateway-zone.grafana.net/otlp"),
+                "",
+                "zone",
+                "",
+                Optional.of("apiKey"))),
         Arguments.of(
-            "only onprem endpoint", Optional.of("endpoint"), "", "", "endpoint", Optional.empty()),
+            "only onprem endpoint",
+            new EndpointTestCase(Optional.of("endpoint"), "", "", "endpoint", Optional.empty())),
         Arguments.of(
             "both with cloud",
-            Optional.of("https://otlp-gateway-zone.grafana.net/otlp"),
-            "ignoring grafana.otlp.onprem.endpoint, because grafana.otlp.cloud.instanceId was found",
-            "zone",
-            "endpoint",
-            Optional.of("key")),
+            new EndpointTestCase(
+                Optional.of("https://otlp-gateway-zone.grafana.net/otlp"),
+                "ignoring grafana.otlp.onprem.endpoint, because grafana.otlp.cloud.instanceId was found",
+                "zone",
+                "endpoint",
+                Optional.of("key"))),
         Arguments.of(
             "zone without instanceId",
-            Optional.of("endpoint"),
-            "ignoring grafana.otlp.cloud.zone, because grafana.otlp.cloud.instanceId was not found",
-            "zone",
-            "endpoint",
-            Optional.empty()),
+            new EndpointTestCase(
+                Optional.of("endpoint"),
+                "ignoring grafana.otlp.cloud.zone, because grafana.otlp.cloud.instanceId was not found",
+                "zone",
+                "endpoint",
+                Optional.empty())),
         Arguments.of(
             "missing zone",
-            Optional.empty(),
-            "please specify grafana.otlp.cloud.zone",
-            " ",
-            " ",
-            Optional.of("key")),
+            new EndpointTestCase(
+                Optional.empty(),
+                "please specify grafana.otlp.cloud.zone",
+                " ",
+                " ",
+                Optional.of("key"))),
         Arguments.of(
             "onprem endpoint not set",
-            Optional.empty(),
-            "grafana.otlp.onprem.endpoint not found, using default endpoint for otel.exporter.otlp.protocol",
-            " ",
-            " ",
-            Optional.empty()));
+            new EndpointTestCase(
+                Optional.empty(),
+                "grafana.otlp.onprem.endpoint not found, using default endpoint for otel.exporter.otlp.protocol",
+                " ",
+                " ",
+                Optional.empty())));
   }
+
+  record ProtocolTestCase(
+      String expected, String expectedOutput, String protocol, Optional<String> authHeader) {}
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("protocolCases")
-  void getProtocol(
-      String name,
-      String expected,
-      String expectedOutput,
-      String protocol,
-      Optional<String> authHeader,
-      CapturedOutput output) {
-    Assertions.assertThat(OpenTelemetryConfig.getProtocol(protocol, authHeader))
-        .isEqualTo(expected);
-    Assertions.assertThat(output).contains(expectedOutput);
+  void getProtocol(String name, ProtocolTestCase testCase, CapturedOutput output) {
+    Assertions.assertThat(OpenTelemetryConfig.getProtocol(testCase.protocol, testCase.authHeader))
+        .isEqualTo(testCase.expected);
+    Assertions.assertThat(output).contains(testCase.expectedOutput);
   }
 
   private static Stream<Arguments> protocolCases() {
     return Stream.of(
-        Arguments.of("cloud", "http/protobuf", "", "", Optional.of("apiKey")),
+        Arguments.of("cloud", new ProtocolTestCase("http/protobuf", "", "", Optional.of("apiKey"))),
         Arguments.of(
             "cloud and proto",
-            "http/protobuf",
-            "ignoring grafana.otlp.onprem.protocol, because grafana.otlp.cloud.instanceId was found",
-            "grpc",
-            Optional.of("apiKey")),
-        Arguments.of("onprem", "grpc", "", "", Optional.empty()),
-        Arguments.of("onprem and proto", "http/protobuf", "", "http/protobuf", Optional.empty()));
+            new ProtocolTestCase(
+                "http/protobuf",
+                "ignoring grafana.otlp.onprem.protocol, because grafana.otlp.cloud.instanceId was found",
+                "grpc",
+                Optional.of("apiKey"))),
+        Arguments.of("onprem", new ProtocolTestCase("grpc", "", "", Optional.empty())),
+        Arguments.of(
+            "onprem and proto",
+            new ProtocolTestCase("http/protobuf", "", "http/protobuf", Optional.empty())));
   }
 
   @ParameterizedTest(name = "{0}")
