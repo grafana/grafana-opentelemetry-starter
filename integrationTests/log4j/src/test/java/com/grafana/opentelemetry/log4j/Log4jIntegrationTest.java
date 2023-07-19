@@ -25,7 +25,6 @@ import static org.awaitility.Awaitility.await;
 @TestPropertySource(properties = {
         "grafana.otlp.onprem.endpoint = http://localhost:${mockServerPort}",
         "grafana.otlp.onprem.protocol = http/protobuf",
-        "otel.bsp.schedule.delay = 500"
 })
 public class Log4jIntegrationTest {
 

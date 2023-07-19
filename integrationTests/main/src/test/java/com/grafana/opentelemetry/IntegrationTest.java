@@ -30,6 +30,7 @@ import static org.awaitility.Awaitility.await;
 })
 class IntegrationTest {
 
+    @SuppressWarnings("unused")
     private MockServerClient mockServerClient;
 
     @Autowired
@@ -61,7 +62,7 @@ class IntegrationTest {
     }
 
     @Test
-    void dataIsSent() throws InterruptedException {
+    void dataIsSent() {
         restTemplate.getForEntity("/hello", String.class);
 
         await().atMost(10, SECONDS).untilAsserted(() -> {
