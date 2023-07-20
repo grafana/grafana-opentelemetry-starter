@@ -12,21 +12,10 @@ public class LogbackConfig implements LogAppenderConfigurer {
   private static final Logger logger = LoggerFactory.getLogger(LogbackConfig.class);
 
   public void tryAddAppender() {
-    ch.qos.logback.classic.Logger logbackLogger =
-        (ch.qos.logback.classic.Logger)
-            LoggerFactory.getILoggerFactory().getLogger(Logger.ROOT_LOGGER_NAME);
+    ch.qos.logback.classic.Logger logbackLogger = getLogger();
 
     // check if appender has been added manually already
-    AtomicBoolean found = new AtomicBoolean(false);
-    logbackLogger
-        .iteratorForAppenders()
-        .forEachRemaining(
-            appender -> {
-              if (appender instanceof OpenTelemetryAppender) {
-                found.set(true);
-              }
-            });
-    if (found.get()) {
+    if (hasAppender(logbackLogger)) {
       logger.info("logback OpenTelemetryAppender has already been added");
       return;
     }
@@ -36,5 +25,23 @@ public class LogbackConfig implements LogAppenderConfigurer {
     openTelemetryAppender.setCaptureExperimentalAttributes(true);
     openTelemetryAppender.start();
     logbackLogger.addAppender(openTelemetryAppender);
+  }
+
+  static ch.qos.logback.classic.Logger getLogger() {
+    return (ch.qos.logback.classic.Logger)
+        LoggerFactory.getILoggerFactory().getLogger(Logger.ROOT_LOGGER_NAME);
+  }
+
+  static boolean hasAppender(ch.qos.logback.classic.Logger logbackLogger) {
+    AtomicBoolean found = new AtomicBoolean(false);
+    logbackLogger
+        .iteratorForAppenders()
+        .forEachRemaining(
+            appender -> {
+              if (appender instanceof OpenTelemetryAppender) {
+                found.set(true);
+              }
+            });
+    return found.get();
   }
 }

@@ -8,4 +8,5 @@ sed -i 's/zone/grafana.otlp.cloud.zone/g' README.generated
 sed -i 's/apiKey/grafana.otlp.cloud.apiKey/g' README.generated
 sed -i 's/instanceId/grafana.otlp.cloud.instanceId/g' README.generated
 sed -i 's/debugLogging/grafana.otlp.debugLogging/g' README.generated
+sed -i 's/enabled/grafana.otlp.enabled/g' README.generated
 sed -i 's/globalAttributes/grafana.otlp.globalAttributes/g' README.generated

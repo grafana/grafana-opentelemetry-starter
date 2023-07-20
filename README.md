@@ -19,7 +19,7 @@ Logging is supported with Logback and Log4j2
 Add the following dependency to your `build.gradle`
 
 ```groovy
-implementation 'com.grafana:grafana-opentelemetry-starter:1.3.1'
+implementation 'com.grafana:grafana-opentelemetry-starter:1.3.2'
 ```
 
 ... or `pom.xml`
@@ -28,7 +28,7 @@ implementation 'com.grafana:grafana-opentelemetry-starter:1.3.1'
 <dependency>
     <groupId>com.grafana</groupId>
     <artifactId>grafana-opentelemetry-starter</artifactId>
-    <version>1.3.1</version>
+    <version>1.3.2</version>
 </dependency>
 ```
 
@@ -157,6 +157,12 @@ The following block can be added to build.gradle to set the application name and
 Log all metrics, traces, and logs that are created for debugging purposes (in addition to sending them to the backend via OTLP).
 
 This will also send metrics and traces to Loki as an unintended side effect.
+
+#### grafana.otlp.enabled
+
+Enable or disable the OpenTelemetry integration (default is enabled).
+
+This can be used to disable the integration without removing the dependency.
 
 #### grafana.otlp.cloud.zone
 

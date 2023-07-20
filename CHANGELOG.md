@@ -1,4 +1,8 @@
 # Changelog
+                    
+## Version 1.3.2. (2023-07-19)
+                                       
+* You can now disable the starter by setting `spring.opentelemetry.enabled=false` in your application.yaml or application.properties
 
 ## Version 1.3.1. (2023-06-29)
                 
