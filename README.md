@@ -7,7 +7,8 @@ in Grafana Cloud or the Grafana OSS stack.
 
 | Spring Boot Version | Java Version | Recommended Setup                                                                        |
 |---------------------|--------------|------------------------------------------------------------------------------------------|
-| 3.1+                | 17+          | Use this starter                                                                         |
+| 3.2.x               | 17+          | Use this starter in version 3.2.x                                                        |
+| 3.1.x               | 17+          | Use this starter in version 3.2.0                                                        |
 | 3.0.4 - 3.1         | 17+          | Use this starter in version 1.0.0 (only works with gradle)                               |
 | 2.x                 | 8+           | Use the [Java Agent](https://grafana.com/docs/opentelemetry/instrumentation/java-agent/) |
 
@@ -19,7 +20,7 @@ Logging is supported with Logback and Log4j2
 Add the following dependency to your `build.gradle`
 
 ```groovy
-implementation 'com.grafana:grafana-opentelemetry-starter:1.3.2'
+implementation 'com.grafana:grafana-opentelemetry-starter:3.2.0'
 ```
 
 ... or `pom.xml`
@@ -28,7 +29,7 @@ implementation 'com.grafana:grafana-opentelemetry-starter:1.3.2'
 <dependency>
     <groupId>com.grafana</groupId>
     <artifactId>grafana-opentelemetry-starter</artifactId>
-    <version>1.3.2</version>
+    <version>3.2.0</version>
 </dependency>
 ```
 

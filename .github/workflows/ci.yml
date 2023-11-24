@@ -26,6 +26,8 @@ jobs:
         uses: gradle/wrapper-validation-action@v1.0.5
       - name: Test and build Jar
         uses: gradle/gradle-build-action@v2.4.2
+        env:
+          CHECK_GENERATED_FILES: true
         with:
           arguments: test jar
   publish:
