@@ -7,7 +7,7 @@ in Grafana Cloud or the Grafana OSS stack.
 
 | Spring Boot Version | Java Version | Recommended Setup                                                                                        |
 |---------------------|--------------|----------------------------------------------------------------------------------------------------------|
-| 3.2.x               | 17+          | Use this starter in version 1.4.x                                                                        |
+| 3.2.x               | 17+          | Use this starter in version 3.2.x                                                                        |
 | 3.1.x               | 17+          | Use this starter in version 1.3.x                                                                        |
 | 3.0.4 < 3.1.0       | 17+          | Use this starter in version 1.0.0 (only works with gradle)                                               |
 | 2.x                 | 8+           | Use [Grafana OpenTelemetry Distribution for Java](https://github.com/grafana/grafana-opentelemetry-java) |
@@ -28,7 +28,7 @@ Follow these three steps to get started with Grafana OpenTelemetry:
 Add the following dependency to your `build.gradle`
 
 ```groovy
-implementation 'com.grafana:grafana-opentelemetry-starter:1.4.0'
+implementation 'com.grafana:grafana-opentelemetry-starter:3.2.0'
 ```
 
 ... or `pom.xml`
@@ -37,7 +37,7 @@ implementation 'com.grafana:grafana-opentelemetry-starter:1.4.0'
 <dependency>
     <groupId>com.grafana</groupId>
     <artifactId>grafana-opentelemetry-starter</artifactId>
-    <version>1.4.0</version>
+    <version>3.2.0</version>
 </dependency>
 ```
 
