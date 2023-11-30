@@ -3,6 +3,7 @@ package com.grafana.opentelemetry;
 import io.micrometer.registry.otlp.OtlpConfig;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 class MetricsOtlpConfig implements OtlpConfig {
 
@@ -32,10 +33,8 @@ class MetricsOtlpConfig implements OtlpConfig {
         return null;
     }
 
-    //todo wait for next micrometer version to expose this: https://github.com/micrometer-metrics/micrometer/pull/3883/files#diff-472b2d48e56d0063bd23f43e531f7f14f3f2305f807d2bbd66aada9f644e8f79R152-R154
-//            @Override
-//            public TimeUnit baseTimeUnit() {
-//                return null;
-//            }
-
+    @Override
+    public TimeUnit baseTimeUnit() {
+        return TimeUnit.SECONDS;
+    }
 }

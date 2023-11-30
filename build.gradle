@@ -60,11 +60,12 @@ dependencies {
     implementation "io.opentelemetry:opentelemetry-exporter-logging" // only for debug
     runtimeOnly "io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:$otelVersion-alpha"
     runtimeOnly "io.opentelemetry.instrumentation:opentelemetry-log4j-appender-2.17:$otelVersion-alpha"
-    implementation "io.opentelemetry:opentelemetry-semconv:$otelVersion-alpha"
+    implementation 'io.opentelemetry.semconv:opentelemetry-semconv:1.21.0-alpha'
+
     runtimeOnly "io.opentelemetry.instrumentation:opentelemetry-resources:$otelVersion-alpha"
     implementation "io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion"
     runtimeOnly "io.micrometer:micrometer-tracing-bridge-otel"
-    implementation "io.micrometer:micrometer-registry-otlp:1.11.0"
+    implementation "io.micrometer:micrometer-registry-otlp"
 
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
