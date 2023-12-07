@@ -1,10 +1,9 @@
 # Changelog
                   
-## Version 3.2.0 (2023-11-24)
+## Version 1.4.0 (2023-12-07)
 
 * This version supports Spring Boot 3.2.0
-* Add resource attributes `telemetry.distro.name` = `grafana-opentelemetry-starter` and `telemetry.distro.version` = `3.2.0`
-* From now on, the version number of this starter will be the same as the version number of Spring Boot
+* Add resource attributes `telemetry.distro.name` = `grafana-opentelemetry-starter` and `telemetry.distro.version` = `1.4.0`
   
 ## Version 1.3.2 (2023-07-19)
                                        
