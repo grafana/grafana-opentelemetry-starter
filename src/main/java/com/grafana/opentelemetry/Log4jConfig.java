@@ -1,5 +1,6 @@
 package com.grafana.opentelemetry;
 
+import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.instrumentation.log4j.appender.v2_17.OpenTelemetryAppender;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,7 +15,13 @@ public class Log4jConfig implements LogAppenderConfigurer {
 
   private static final Logger logger = LogManager.getLogger(Log4jConfig.class);
 
-  public void tryAddAppender() {
+  public void tryAddAppender(OpenTelemetry openTelemetry) {
+    org.apache.logging.log4j.spi.LoggerContext loggerContextSpi = LogManager.getContext(false);
+    if (!(loggerContextSpi instanceof LoggerContext)) {
+      logger.warn("cannot add log4j OpenTelemetryAppender, not running in a LoggerContext");
+      return;
+    }
+
     LoggerContext context = (LoggerContext) LogManager.getContext(false);
     Configuration config = context.getConfiguration();
     boolean found =
@@ -27,6 +34,7 @@ public class Log4jConfig implements LogAppenderConfigurer {
                             .OpenTelemetryAppender);
     if (found) {
       logger.info("log4j2 OpenTelemetryAppender has already been added");
+      OpenTelemetryAppender.install(openTelemetry);
       return;
     }
 
@@ -36,6 +44,7 @@ public class Log4jConfig implements LogAppenderConfigurer {
             .setCaptureExperimentalAttributes(true)
             .setName("OpenTelemetryAppender")
             .setConfiguration(config)
+            .setOpenTelemetry(openTelemetry)
             .build();
     appender.start();
     config.addAppender(appender);

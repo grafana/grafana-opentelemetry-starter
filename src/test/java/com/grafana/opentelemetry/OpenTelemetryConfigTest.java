@@ -1,6 +1,6 @@
 package com.grafana.opentelemetry;
 
-import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
+import io.opentelemetry.semconv.ResourceAttributes;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

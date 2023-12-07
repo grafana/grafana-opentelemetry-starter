@@ -1,5 +1,7 @@
 package com.grafana.opentelemetry;
 
+import io.opentelemetry.api.OpenTelemetry;
+
 public interface LogAppenderConfigurer {
-  void tryAddAppender();
+  void tryAddAppender(OpenTelemetry openTelemetry);
 }

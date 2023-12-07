@@ -7,12 +7,20 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.instrumentation.micrometer.v1_5.OpenTelemetryMeterRegistry;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdkBuilder;
-import io.opentelemetry.sdk.metrics.*;
+import io.opentelemetry.sdk.metrics.Aggregation;
+import io.opentelemetry.sdk.metrics.InstrumentSelector;
+import io.opentelemetry.sdk.metrics.InstrumentType;
+import io.opentelemetry.sdk.metrics.SdkMeterProviderBuilder;
+import io.opentelemetry.sdk.metrics.View;
 import io.opentelemetry.sdk.metrics.internal.aggregator.ExplicitBucketHistogramUtils;
-import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
+import io.opentelemetry.semconv.ResourceAttributes;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -32,6 +40,9 @@ import org.springframework.context.annotation.PropertySource;
 @EnableConfigurationProperties(GrafanaProperties.class)
 @PropertySource(value = {"classpath:grafana-otel-starter.properties"})
 public class OpenTelemetryConfig {
+
+  public static final String DISTRIBUTION_NAME = "telemetry.distro.name";
+  public static final String DISTRIBUTION_VERSION = "telemetry.distro.version";
 
   private static final Logger logger = LoggerFactory.getLogger(OpenTelemetryConfig.class);
 
@@ -59,15 +70,12 @@ public class OpenTelemetryConfig {
   }
 
   static void tryAddAppender(
-      @SuppressWarnings("unused") OpenTelemetry openTelemetry,
-      List<LogAppenderConfigurer> logAppenderConfigurers) {
-    // the openTelemetry object is not used yet, but it will be used in the future, when the global
-    // otel instance is not used by default anymore
-
+      OpenTelemetry openTelemetry, List<LogAppenderConfigurer> logAppenderConfigurers) {
     if (logAppenderConfigurers.isEmpty()) {
       logger.warn("no logging library found - OpenTelemetryAppender not added");
     } else {
-      logAppenderConfigurers.forEach(LogAppenderConfigurer::tryAddAppender);
+      logAppenderConfigurers.forEach(
+          logAppenderConfigurer -> logAppenderConfigurer.tryAddAppender(openTelemetry));
     }
   }
 
@@ -242,6 +250,9 @@ public class OpenTelemetryConfig {
         ResourceAttributes.SERVICE_INSTANCE_ID,
         hostName,
         System.getenv("HOST"));
+
+    resourceAttributes.put(DISTRIBUTION_NAME, "grafana-opentelemetry-starter");
+    resourceAttributes.put(DISTRIBUTION_VERSION, DistributionVersion.VERSION);
 
     return resourceAttributes.entrySet().stream()
         .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))

@@ -1,5 +1,6 @@
 package com.grafana.opentelemetry;
 
+import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
@@ -11,20 +12,22 @@ public class LogbackConfig implements LogAppenderConfigurer {
 
   private static final Logger logger = LoggerFactory.getLogger(LogbackConfig.class);
 
-  public void tryAddAppender() {
+  public void tryAddAppender(OpenTelemetry openTelemetry) {
     ch.qos.logback.classic.Logger logbackLogger = getLogger();
 
     // check if appender has been added manually already
     if (hasAppender(logbackLogger)) {
       logger.info("logback OpenTelemetryAppender has already been added");
+      OpenTelemetryAppender.install(openTelemetry);
       return;
     }
 
     logger.info("adding logback OpenTelemetryAppender");
-    OpenTelemetryAppender openTelemetryAppender = new OpenTelemetryAppender();
-    openTelemetryAppender.setCaptureExperimentalAttributes(true);
-    openTelemetryAppender.start();
-    logbackLogger.addAppender(openTelemetryAppender);
+    OpenTelemetryAppender appender = new OpenTelemetryAppender();
+    appender.setCaptureExperimentalAttributes(true);
+    appender.setOpenTelemetry(openTelemetry);
+    appender.start();
+    logbackLogger.addAppender(appender);
   }
 
   static ch.qos.logback.classic.Logger getLogger() {

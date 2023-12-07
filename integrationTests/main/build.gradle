@@ -1,7 +1,7 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.1.5'
-    id 'io.spring.dependency-management' version '1.1.3'
+    id 'org.springframework.boot' version '3.2.0'
+    id 'io.spring.dependency-management' version '1.1.4'
 }
 
 repositories {
@@ -11,7 +11,7 @@ repositories {
 dependencies {
     def otelVersion = dependencyManagement.importedProperties['opentelemetry.version']
     //this dependency is not supposed to be exposed by the starter - so we add it here for testing purposes
-    implementation "io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion-alpha"
+    implementation "io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion"
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-web'
