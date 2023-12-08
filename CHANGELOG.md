@@ -1,16 +1,12 @@
 # Changelog
 
-## unreleased
-
-* TODO release 2.0.0 - describe changes better
-* gRPC not supported anymore
-* Environment variables starting with "OTEL_" are not supported anymore, because they will only affect the trace and log exporter
-
 ## Version 3.2.0 (2023-11-24)
                                                                                                        
 * TODO: more spring native
 * From now on, the version number of this starter will be the same as the version number of Spring Boot
 * Breaking changes: todo        
+  * gRPC not supported anymore
+  * Environment variables starting with "OTEL_" are not supported anymore, because they will only affect the trace and log exporter
 
 ## Version 1.4.0 (2023-12-07)
 
