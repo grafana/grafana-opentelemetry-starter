@@ -3,16 +3,19 @@ package com.grafana.opentelemetry;
 import static org.junit.jupiter.api.Named.named;
 
 import io.micrometer.core.instrument.Clock;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.util.ReflectionUtils;
 
 public class ResourceAttributesTest {
 
@@ -31,15 +34,22 @@ public class ResourceAttributesTest {
     }
   }
 
-  private final ApplicationContextRunner contextRunner =
-      new ApplicationContextRunner()
-          .withConfiguration(AutoConfigurations.of(OpenTelemetryConfig.class))
-          .withBean(Clock.class, () -> Clock.SYSTEM);
+  @AfterEach
+  void setUp() throws Exception {
+    GlobalOpenTelemetry.resetForTest();
+    ReflectionUtils.invokeMethod(
+        Class.forName("io.opentelemetry.api.events.GlobalEventEmitterProvider")
+            .getMethod("resetForTest"),
+        null);
+  }
 
   @ParameterizedTest
   @MethodSource("testCases")
   void readResourceAttributes(TestCase testCase) {
-    ApplicationContextRunner runner = contextRunner;
+    ApplicationContextRunner runner =
+        new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(OpenTelemetryConfig.class))
+            .withBean(Clock.class, () -> Clock.SYSTEM);
     if (testCase.runner != null) {
       runner = testCase.runner.apply(runner);
     }

@@ -1,8 +1,6 @@
 package com.grafana.opentelemetry;
 
-import io.micrometer.core.instrument.config.validate.DurationValidator;
 import io.micrometer.registry.otlp.OtlpConfig;
-
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;

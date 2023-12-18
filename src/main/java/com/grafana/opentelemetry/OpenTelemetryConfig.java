@@ -5,10 +5,6 @@ import static org.springframework.util.ReflectionUtils.invokeMethod;
 
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.core.instrument.Clock;
-import io.micrometer.core.instrument.config.validate.DurationValidator;
-import io.micrometer.core.instrument.config.validate.InvalidReason;
-import io.micrometer.core.instrument.config.validate.PropertyValidator;
-import io.micrometer.core.instrument.config.validate.Validated;
 import io.micrometer.core.instrument.logging.LoggingMeterRegistry;
 import io.micrometer.registry.otlp.OtlpMeterRegistry;
 import io.opentelemetry.api.OpenTelemetry;
@@ -29,7 +25,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.util.Strings;
@@ -120,8 +115,10 @@ public class OpenTelemetryConfig {
       GrafanaProperties properties,
       ConnectionProperties connectionProperties,
       @Value("${spring.application.name:#{null}}") String applicationName) {
-    // the log record exporter uses the global instance, so we need to set it as global to avoid a warning
-    AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder().setResultAsGlobal();
+    // the log record exporter uses the global instance, so we need to set it as global to avoid a
+    // warning
+    AutoConfiguredOpenTelemetrySdkBuilder builder =
+        AutoConfiguredOpenTelemetrySdk.builder().setResultAsGlobal();
 
     Map<String, String> configProperties = getConfigProperties(properties, connectionProperties);
     builder.addPropertiesSupplier(() -> configProperties);
@@ -169,8 +166,7 @@ public class OpenTelemetryConfig {
   public ConnectionProperties connectionProperties(
       GrafanaProperties properties,
       @Value("${otel.exporter.otlp.endpoint:#{null}}") String otlpEndpoint,
-      @Value("${otel.metric.export.interval:60000}") String metricExportInterval
-      ) {
+      @Value("${otel.metric.export.interval:60000}") String metricExportInterval) {
     GrafanaProperties.CloudProperties cloud = properties.getCloud();
     Map<String, String> headers = getHeaders(cloud.getInstanceId(), cloud.getApiKey());
     if (StringUtils.isBlank(otlpEndpoint)) {
@@ -178,7 +174,8 @@ public class OpenTelemetryConfig {
     }
     Optional<String> endpoint = getEndpoint(otlpEndpoint, cloud.getZone(), headers);
 
-      return new ConnectionProperties(endpoint, headers, Duration.of(Integer.parseInt(metricExportInterval), ChronoUnit.MILLIS));
+    return new ConnectionProperties(
+        endpoint, headers, Duration.of(Integer.parseInt(metricExportInterval), ChronoUnit.MILLIS));
   }
 
   static Map<String, String> maskAuthHeader(Map<String, String> configProperties) {
