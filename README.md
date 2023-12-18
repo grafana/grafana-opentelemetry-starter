@@ -28,7 +28,7 @@ Follow these three steps to get started with Grafana OpenTelemetry:
 Add the following dependency to your `build.gradle`
 
 ```groovy
-implementation 'com.grafana:grafana-opentelemetry-starter:3.2.0'
+implementation 'com.grafana:grafana-opentelemetry-starter:3.2.0-beta.1'
 ```
 
 ... or `pom.xml`
@@ -37,7 +37,7 @@ implementation 'com.grafana:grafana-opentelemetry-starter:3.2.0'
 <dependency>
     <groupId>com.grafana</groupId>
     <artifactId>grafana-opentelemetry-starter</artifactId>
-    <version>3.2.0</version>
+    <version>3.2.0-beta.1</version>
 </dependency>
 ```
 

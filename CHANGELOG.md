@@ -1,12 +1,13 @@
 # Changelog
 
-## Version 3.2.0 (2023-11-24)
+## Version 3.2.0-beta.1 (2023-11-24)
                                                                                                        
 * TODO: more spring native
 * From now on, the version number of this starter will be the same as the version number of Spring Boot
 * Breaking changes: todo        
   * gRPC not supported anymore
   * Environment variables starting with "OTEL_" are not supported anymore, because they will only affect the trace and log exporter
+* Application name and version are not read from MANIFEST.MF anymore, because this also wrongly reads information from dependencies
 
 ## Version 1.4.0 (2023-12-07)
 
