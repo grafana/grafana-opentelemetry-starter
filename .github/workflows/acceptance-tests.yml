@@ -38,7 +38,7 @@ jobs:
         uses: gradle/wrapper-validation-action@v1.1.0
       - name: Setup Gradle and run build
         working-directory: integrationTests/oats
-        run: ./gradlew build
+        run: ../../gradlew build
       - name: Run acceptance tests
         run: ./scripts/run-acceptance-tests.sh
       - name: upload log file
