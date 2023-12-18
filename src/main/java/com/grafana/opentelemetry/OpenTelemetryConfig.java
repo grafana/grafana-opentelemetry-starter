@@ -5,6 +5,10 @@ import static org.springframework.util.ReflectionUtils.invokeMethod;
 
 import io.micrometer.common.util.StringUtils;
 import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.config.validate.DurationValidator;
+import io.micrometer.core.instrument.config.validate.InvalidReason;
+import io.micrometer.core.instrument.config.validate.PropertyValidator;
+import io.micrometer.core.instrument.config.validate.Validated;
 import io.micrometer.core.instrument.logging.LoggingMeterRegistry;
 import io.micrometer.registry.otlp.OtlpMeterRegistry;
 import io.opentelemetry.api.OpenTelemetry;
@@ -15,6 +19,8 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdkBuilder;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.ResourceAttributes;
 import java.lang.reflect.Method;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,6 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.util.Strings;
@@ -62,11 +69,13 @@ public class OpenTelemetryConfig {
 
   @Bean
   public OtlpMeterRegistry openTelemetryMeterRegistry(
-      Clock clock, GrafanaProperties properties, Resource resource) {
+      Clock clock,
+      GrafanaProperties properties,
+      Resource resource,
+      ConnectionProperties connectionProperties) {
     return new OtlpMeterRegistry(
         new MetricsOtlpConfig(
-            getMap(resource, k -> !EXCLUDED_ATTRIBUTES.contains(k)),
-            connectionProperties(properties)),
+            getMap(resource, k -> !EXCLUDED_ATTRIBUTES.contains(k)), connectionProperties),
         clock);
   }
 
@@ -109,10 +118,12 @@ public class OpenTelemetryConfig {
   @Bean
   public AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk(
       GrafanaProperties properties,
+      ConnectionProperties connectionProperties,
       @Value("${spring.application.name:#{null}}") String applicationName) {
-    AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder();
+    // the log record exporter uses the global instance, so we need to set it as global to avoid a warning
+    AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder().setResultAsGlobal();
 
-    Map<String, String> configProperties = getConfigProperties(properties);
+    Map<String, String> configProperties = getConfigProperties(properties, connectionProperties);
     builder.addPropertiesSupplier(() -> configProperties);
     builder.addResourceCustomizer(
         (resource, unused) -> {
@@ -131,34 +142,43 @@ public class OpenTelemetryConfig {
     }
   }
 
-  private static Map<String, String> getConfigProperties(GrafanaProperties properties) {
+  private Map<String, String> getConfigProperties(
+      GrafanaProperties properties, ConnectionProperties connectionProperties) {
     String exporters = properties.isDebugLogging() ? "logging,otlp" : "otlp";
 
-    ConnectionProperties p = connectionProperties(properties);
     Map<String, String> configProperties =
         new HashMap<>(
             Map.of(
                 "otel.exporter.otlp.protocol", PROTOCOL,
                 "otel.traces.exporter", exporters,
                 "otel.logs.exporter", exporters));
-    if (!p.getHeaders().isEmpty()) {
+    if (!connectionProperties.headers().isEmpty()) {
       configProperties.put(
           OTLP_HEADERS,
-          p.getHeaders().entrySet().stream()
+          connectionProperties.headers().entrySet().stream()
               .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))
               .collect(Collectors.joining(",")));
     }
-    p.getEndpoint().ifPresent(s -> configProperties.put("otel.exporter.otlp.endpoint", s));
+    connectionProperties
+        .endpoint()
+        .ifPresent(s -> configProperties.put("otel.exporter.otlp.endpoint", s));
     return configProperties;
   }
 
-  private static ConnectionProperties connectionProperties(GrafanaProperties properties) {
+  @Bean
+  public ConnectionProperties connectionProperties(
+      GrafanaProperties properties,
+      @Value("${otel.exporter.otlp.endpoint:#{null}}") String otlpEndpoint,
+      @Value("${otel.metric.export.interval:60000}") String metricExportInterval
+      ) {
     GrafanaProperties.CloudProperties cloud = properties.getCloud();
     Map<String, String> headers = getHeaders(cloud.getInstanceId(), cloud.getApiKey());
-    Optional<String> endpoint =
-        getEndpoint(properties.getOnPrem().getEndpoint(), cloud.getZone(), headers);
+    if (StringUtils.isBlank(otlpEndpoint)) {
+      otlpEndpoint = properties.getOnPrem().getEndpoint();
+    }
+    Optional<String> endpoint = getEndpoint(otlpEndpoint, cloud.getZone(), headers);
 
-    return new ConnectionProperties(endpoint, headers);
+      return new ConnectionProperties(endpoint, headers, Duration.of(Integer.parseInt(metricExportInterval), ChronoUnit.MILLIS));
   }
 
   static Map<String, String> maskAuthHeader(Map<String, String> configProperties) {

@@ -1,8 +1,6 @@
 package com.grafana.opentelemetry;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
@@ -17,13 +15,11 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
-import org.mockserver.model.HttpRequest;
 import org.mockserver.springtest.MockServerTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpMethod;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest(
@@ -43,6 +39,10 @@ class IntegrationTest {
   @Autowired private TestRestTemplate restTemplate;
 
   @Autowired private GrafanaProperties properties;
+
+  @SuppressWarnings("unused")
+  @Autowired
+  private ConnectionProperties connectionProperties;
 
   @Autowired private Optional<AutoConfiguredOpenTelemetrySdk> sdk;
 
@@ -89,31 +89,5 @@ class IntegrationTest {
       }
     }
     return Collections.emptyList();
-  }
-
-  @Test
-  void dataIsSent() {
-    restTemplate.getForEntity("/hello", String.class);
-
-    await()
-        .atMost(10, SECONDS)
-        .untilAsserted(
-            () -> {
-              verifyPath("/v1/traces");
-              verifyPath("/v1/metrics");
-              verifyPath("/v1/logs");
-            });
-  }
-
-  private void verifyPath(String path) {
-    // only assert that a request was received,
-    // because the goal of this test is to make sure that data is still sent when dependabot
-    // upgrades
-    // spring boot, which can also update the OpenTelemetry version
-    mockServerClient.verify(
-        HttpRequest.request()
-            .withMethod(HttpMethod.POST.name())
-            .withPath(path)
-            .withHeader("Content-Type", "application/x-protobuf"));
   }
 }

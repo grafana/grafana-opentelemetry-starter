@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  application:
+    image: eclipse-temurin:17-jre
+    volumes:
+      - ./build/libs:/libs
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://collector:4318"
+      OTEL_METRIC_EXPORT_INTERVAL: "5000"  # so we don't have to wait 60s for metrics
+    command:
+      - /bin/bash
+      - -c
+      - java -jar /libs/*.jar
+    ports:
+      - 8080:8080
+

@@ -1,0 +1,35 @@
+docker-compose:
+  generator: lgtm
+  files:
+  - docker-compose.yaml
+input:
+  - path: /hello
+expected:
+  logs:
+    - logql: '{exporter = "OTLP"}'
+      contains:
+        - 'hello LGTM'
+  traces:
+    - traceql: '{ name = "http get /hello" }'
+      spans:
+        - name: 'http get /hello'
+  dashboards:
+    - path: jvm-dashboard.json
+    # rate_interval: 2m
+      panels:
+        - title: Rate
+          value: "> 0"
+        - title: Error %
+          value: "> 0"
+        - title: Duration (95%)
+          value: "> 0"
+        - title: CPU utilization
+          value: ">= 0"
+        - title: Heap Memory Utilization
+          value: "> 0"
+        - title: Garbage Collection
+          value: ">= 0"
+        - title: Classes
+          value: "> 0"
+        - title: Threads
+          value: "> 0"

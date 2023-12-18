@@ -1,0 +1,50 @@
+name: Acceptance Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - labeled
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  acceptance-tests:
+    # see https://stackoverflow.com/questions/62325286/run-github-actions-when-pull-requests-have-a-specific-label
+    if: contains(github.event.pull_request.labels.*.name, 'oats')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+      - name: Check out oats
+        uses: actions/checkout@v4
+        with:
+          repository: grafana/oats
+          ref: d2e59f9857d898f9d0f606714de3b22ee9d61804
+          path: oats
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+          cache-dependency-path: oats/go.sum
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1.1.0
+      - name: Setup Gradle and run build
+        uses: gradle/gradle-build-action@v2.10.0
+        working-directory: integrationTests/oats
+        run: ./gradlew build
+      - name: Run acceptance tests
+        run: ./scripts/run-acceptance-tests.sh
+      - name: upload log file
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: docker-compose.log
+          path: oats/yaml/build/**/output.log

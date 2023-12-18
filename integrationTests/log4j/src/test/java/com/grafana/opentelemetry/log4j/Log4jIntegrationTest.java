@@ -23,7 +23,6 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(
     properties = {
       "grafana.otlp.onprem.endpoint = http://localhost:${mockServerPort}",
-      "grafana.otlp.onprem.protocol = http/protobuf",
     })
 public class Log4jIntegrationTest {
 

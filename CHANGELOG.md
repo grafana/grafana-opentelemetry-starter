@@ -8,6 +8,7 @@
   * gRPC not supported anymore
   * Environment variables starting with "OTEL_" are not supported anymore, because they will only affect the trace and log exporter
 * Application name and version are not read from MANIFEST.MF anymore, because this also wrongly reads information from dependencies
+* support OTEL_EXPORTER_OTLP_ENDPOINT in addition to grafana.otlp.onprem.endpoint
 
 ## Version 1.4.0 (2023-12-07)
 

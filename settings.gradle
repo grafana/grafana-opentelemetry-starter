@@ -3,5 +3,6 @@ rootProject.name = 'grafana-opentelemetry-starter'
 include(
         ":integrationTests:main",
         ":integrationTests:disable",
-        ":integrationTests:log4j"
+        ":integrationTests:log4j",
+        ":integrationTests:oats"
 )
