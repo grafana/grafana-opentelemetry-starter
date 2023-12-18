@@ -1,13 +1,20 @@
 package com.grafana.opentelemetry;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.HttpRequest;
@@ -27,8 +34,6 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(
     properties = {
       "grafana.otlp.onprem.endpoint = http://localhost:${mockServerPort}",
-      "grafana.otlp.onprem.protocol = grpc" // is overridden by system property
-      // otel.exporter.otlp.protocol
     })
 class IntegrationTest {
 
@@ -41,32 +46,49 @@ class IntegrationTest {
 
   @Autowired private Optional<AutoConfiguredOpenTelemetrySdk> sdk;
 
-  static {
-    String delay = "500";
-    System.setProperty("otel.metric.export.interval", delay);
-    System.setProperty("otel.bsp.schedule.delay", delay);
-    System.setProperty("otel.exporter.otlp.protocol", "http/protobuf");
-  }
-
   @Test
   void testProperties() {
-    Assertions.assertThat(properties.getCloud().getZone()).isEqualTo("prod-eu-west-0");
+    assertThat(properties.getCloud().getZone()).isEqualTo("prod-eu-west-0");
   }
 
   @Test
-  void systemPropHasPriority() {
-    Assertions.assertThat(sdk)
+  void metricsResourceAttributes() throws IllegalAccessException {
+    List<Map.Entry<String, String>> metricsResourceAttributes = getMetricsResourceAttributes();
+    assertThat(metricsResourceAttributes)
+        .contains(Map.entry("telemetry.sdk.name", "io.micrometer"));
+    assertThat(metricsResourceAttributes).extracting(Map.Entry::getKey).doesNotHaveDuplicates();
+  }
+
+  @Test
+  void usesHttpByDefault() {
+    assertThat(sdk)
         .hasValueSatisfying(
             v -> {
               try {
                 ConfigProperties p =
                     (ConfigProperties) MethodUtils.invokeMethod(v, true, "getConfig");
-                Assertions.assertThat(p.getString("otel.exporter.otlp.protocol"))
-                    .isEqualTo("http/protobuf");
+                assertThat(p.getString("otel.exporter.otlp.protocol")).isEqualTo("http/protobuf");
               } catch (Exception e) {
                 throw new RuntimeException(e);
               }
             });
+  }
+
+  private static List<Map.Entry<String, String>> getMetricsResourceAttributes()
+      throws IllegalAccessException {
+    CompositeMeterRegistry globalRegistry = Metrics.globalRegistry;
+    for (MeterRegistry registry : globalRegistry.getRegistries()) {
+      if (registry.getClass().getName().equals("io.micrometer.registry.otlp.OtlpMeterRegistry")) {
+        io.opentelemetry.proto.resource.v1.Resource resource =
+            (io.opentelemetry.proto.resource.v1.Resource)
+                FieldUtils.readField(registry, "resource", true);
+
+        return resource.getAttributesList().stream()
+            .map(a -> Map.entry(a.getKey(), a.getValue().getStringValue()))
+            .toList();
+      }
+    }
+    return Collections.emptyList();
   }
 
   @Test

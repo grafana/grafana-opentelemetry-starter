@@ -181,45 +181,45 @@ you will get the following log output:
 If you still don't see your logs, traces and metrics in Grafana, even though the configuration looks good, 
 you can turn on [debug logging](#grafanaotlpdebuglogging) to what data the application is emitting.
 
-## Limitations
+### Limitations
 
 - gRPC cannot be used to send OTLP data currently
 - [SDK auto-configuration properties](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure)
   cannot be used currently
 
-## Properties
+### Properties
 
 #### grafana.otlp.globalAttributes
 
 Adds global (resource) attributes to metrics, traces and logs.
 
+
+
 For example, you can add `service.version` to make it easier to see if a new version of the application is causing a problem.
 
 
 
-The attributes `service.name`, `service.version`, and `service.instance.id` are automatically detected as outlined below.
+The attributes `service.name`, `service.version`, and <code> service.instance.id</code> are automatically detected as outlined below.
 
 
 
-For `service.name` the order of precedence is: <ol> <li>Manually set service_name in grafana.otlp.grafana.otlp.globalAttributes</li> <li>spring.application.name" in application.properties</li> <li>'Implementation-Title' in jar's MANIFEST.MF</li> </ol>
+For `service.name` the order of precedence is:
 
-The following block can be added to build.gradle to set the application name and version in the jar's MANIFEST.MF: <pre> bootJar { manifest { attributes('Implementation-Title': 'Demo Application', 'Implementation-Version': version) } } </pre> The `service.instance.id` attribute will be set if any of the following return a value. The list is in order of precedence. <ol> <li>InetAddress.getLocalHost().getHostName()</li> <li>environment variable HOSTNAME</li> <li>environment variable HOST</li> </ol>
+<ol> <li>Manually set otel.service.name (not possible in spring properties) <li>Manually set service.name in otel.resource.attributes (not possible in spring properties) <li>Manually set service.name in grafana.otlp.grafana.otlp.globalAttributes <li>spring.application.name" in application.properties </ol>
 
 #### grafana.otlp.debugLogging
 
 Log all metrics, traces, and logs that are created for debugging purposes (in addition to sending them to the backend via OTLP).
 
+
+
 This will also send metrics and traces to Loki as an unintended side effect.
-
-#### grafana.otlp.enabled
-
-Enable or disable the OpenTelemetry integration (default is enabled).
-
-This can be used to disable the integration without removing the dependency.
 
 #### grafana.otlp.cloud.zone
 
 The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.
+
+
 
 Use `onprem.grafana.otlp.onprem.endpoint` instead of `grafana.otlp.cloud.zone` when using the Grafana Agent.
 
@@ -227,11 +227,15 @@ Use `onprem.grafana.otlp.onprem.endpoint` instead of `grafana.otlp.cloud.zone` w
 
 The Instance ID can be found when you click on "Details" in the "Grafana" section on grafana.com.
 
+
+
 Leave `grafana.otlp.cloud.instanceId` empty when using the Grafana Agent.
 
 #### grafana.otlp.cloud.apiKey
 
 Create an API key under "Security" / "API Keys" (left side navigation tree) on grafana.com. The role should be "MetricsPublisher"
+
+
 
 Leave `grafana.otlp.cloud.apiKey` empty when using the Grafana Agent.
 
@@ -239,6 +243,10 @@ Leave `grafana.otlp.cloud.apiKey` empty when using the Grafana Agent.
 
 The grafana.otlp.onprem.endpoint of the Grafana Agent.
 
+
+
 You do not need to set an `grafana.otlp.onprem.endpoint` value if your Grafana Agent is running locally with the default http/protobuf grafana.otlp.onprem.endpoint (http://localhost:4318).
+
+
 
 Use `cloud.grafana.otlp.cloud.zone` instead of `grafana.otlp.onprem.endpoint` when using the Grafana Cloud.

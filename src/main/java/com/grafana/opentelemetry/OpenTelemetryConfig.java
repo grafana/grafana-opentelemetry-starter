@@ -1,29 +1,29 @@
 package com.grafana.opentelemetry;
 
+import static org.springframework.util.ReflectionUtils.findMethod;
+import static org.springframework.util.ReflectionUtils.invokeMethod;
+
+import io.micrometer.common.util.StringUtils;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.logging.LoggingMeterRegistry;
 import io.micrometer.registry.otlp.OtlpMeterRegistry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdkBuilder;
-import io.opentelemetry.sdk.metrics.Aggregation;
-import io.opentelemetry.sdk.metrics.InstrumentSelector;
-import io.opentelemetry.sdk.metrics.InstrumentType;
-import io.opentelemetry.sdk.metrics.SdkMeterProviderBuilder;
-import io.opentelemetry.sdk.metrics.View;
-import io.opentelemetry.sdk.metrics.internal.aggregator.ExplicitBucketHistogramUtils;
+import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.ResourceAttributes;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.lang.reflect.Method;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
@@ -41,22 +41,39 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource(value = {"classpath:grafana-otel-starter.properties"})
 public class OpenTelemetryConfig {
 
-  public static final String DISTRIBUTION_NAME = "telemetry.distro.name";
-  public static final String DISTRIBUTION_VERSION = "telemetry.distro.version";
-
   public static final String PROTOCOL = "http/protobuf";
 
   private static final Logger logger = LoggerFactory.getLogger(OpenTelemetryConfig.class);
 
   public static final String OTLP_HEADERS = "otel.exporter.otlp.headers";
 
+  private static final Set<String> EXCLUDED_ATTRIBUTES =
+      Set.of(
+          ResourceAttributes.TELEMETRY_SDK_NAME.getKey(),
+          ResourceAttributes.TELEMETRY_SDK_LANGUAGE.getKey(),
+          ResourceAttributes.TELEMETRY_SDK_VERSION.getKey());
+
+  @Bean
+  public Resource getResource(AutoConfiguredOpenTelemetrySdk sdk) {
+    Method getResource = findMethod(AutoConfiguredOpenTelemetrySdk.class, "getResource");
+    Objects.requireNonNull(getResource).setAccessible(true);
+    return (Resource) invokeMethod(getResource, sdk);
+  }
+
   @Bean
   public OtlpMeterRegistry openTelemetryMeterRegistry(
-      Clock clock,
-      GrafanaProperties properties,
-      @Value("${spring.application.name:#{null}}") String applicationName) {
+      Clock clock, GrafanaProperties properties, Resource resource) {
     return new OtlpMeterRegistry(
-        new MetricsOtlpConfig(translateProperties(properties, applicationName)), clock);
+        new MetricsOtlpConfig(
+            getMap(resource, k -> !EXCLUDED_ATTRIBUTES.contains(k)),
+            connectionProperties(properties)),
+        clock);
+  }
+
+  static Map<String, String> getMap(Resource resource, Predicate<String> filter) {
+    return resource.getAttributes().asMap().entrySet().stream()
+        .filter(e -> filter.test(e.getKey().getKey()))
+        .collect(Collectors.toMap(t -> t.getKey().getKey(), e -> e.getValue().toString()));
   }
 
   @Bean
@@ -94,10 +111,16 @@ public class OpenTelemetryConfig {
       GrafanaProperties properties,
       @Value("${spring.application.name:#{null}}") String applicationName) {
     AutoConfiguredOpenTelemetrySdkBuilder builder = AutoConfiguredOpenTelemetrySdk.builder();
-    builder.addMeterProviderCustomizer((b, configProperties) -> customizeMeterBuilder(b));
 
-    Map<String, String> configProperties = getConfigProperties(properties, applicationName);
+    Map<String, String> configProperties = getConfigProperties(properties);
     builder.addPropertiesSupplier(() -> configProperties);
+    builder.addResourceCustomizer(
+        (resource, unused) -> {
+          // the provided resource takes precedence over spring resource,
+          // because it contains the service.name that is specified in otel.service.name
+          return springResource(properties, applicationName, resource);
+        });
+
     logger.info("using config properties: {}", maskAuthHeader(configProperties));
 
     try {
@@ -108,39 +131,15 @@ public class OpenTelemetryConfig {
     }
   }
 
-  private static SdkMeterProviderBuilder customizeMeterBuilder(
-      SdkMeterProviderBuilder meterProviderBuilder) {
-    // workaround for bug that bucket boundaries are not scaled correctly: bucket boundaries for
-    // seconds
-    List<Double> buckets =
-        ExplicitBucketHistogramUtils.DEFAULT_HISTOGRAM_BUCKET_BOUNDARIES.stream()
-            .map(d -> d * 0.001)
-            .collect(Collectors.toList());
-
-    meterProviderBuilder.registerView(
-        InstrumentSelector.builder().setType(InstrumentType.HISTOGRAM).build(),
-        View.builder().setAggregation(Aggregation.explicitBucketHistogram(buckets)).build());
-    return meterProviderBuilder;
-  }
-
-  private static Map<String, String> getConfigProperties(
-      GrafanaProperties properties, String applicationName) {
+  private static Map<String, String> getConfigProperties(GrafanaProperties properties) {
     String exporters = properties.isDebugLogging() ? "logging,otlp" : "otlp";
 
-    TranslatedProperties p = translateProperties(properties, applicationName);
-
-    String resourceAttributes =
-        p.getResourceAttributes().entrySet().stream()
-            .map(e -> String.format("%s=%s", e.getKey(), e.getValue()))
-            .collect(Collectors.joining(","));
-
+    ConnectionProperties p = connectionProperties(properties);
     Map<String, String> configProperties =
         new HashMap<>(
             Map.of(
-                "otel.resource.attributes", resourceAttributes,
                 "otel.exporter.otlp.protocol", PROTOCOL,
                 "otel.traces.exporter", exporters,
-                "otel.metrics.exporter", exporters,
                 "otel.logs.exporter", exporters));
     if (!p.getHeaders().isEmpty()) {
       configProperties.put(
@@ -153,15 +152,13 @@ public class OpenTelemetryConfig {
     return configProperties;
   }
 
-  private static TranslatedProperties translateProperties(
-      GrafanaProperties properties, String applicationName) {
+  private static ConnectionProperties connectionProperties(GrafanaProperties properties) {
     GrafanaProperties.CloudProperties cloud = properties.getCloud();
     Map<String, String> headers = getHeaders(cloud.getInstanceId(), cloud.getApiKey());
     Optional<String> endpoint =
         getEndpoint(properties.getOnPrem().getEndpoint(), cloud.getZone(), headers);
-    Map<String, String> attributes = getResourceAttributes(properties, applicationName);
 
-    return new TranslatedProperties(endpoint, headers, attributes);
+    return new ConnectionProperties(endpoint, headers);
   }
 
   static Map<String, String> maskAuthHeader(Map<String, String> configProperties) {
@@ -224,64 +221,25 @@ public class OpenTelemetryConfig {
     return Collections.emptyMap();
   }
 
-  private static Map<String, String> getResourceAttributes(
-      GrafanaProperties properties, String applicationName) {
-    Map<String, String> resourceAttributes = properties.getGlobalAttributes();
-
-    String manifestApplicationName = null;
-    String manifestApplicationVersion = null;
-    try {
-      Manifest mf = new Manifest();
-      mf.read(ClassLoader.getSystemResourceAsStream("META-INF/MANIFEST.MF"));
-      Attributes atts = mf.getMainAttributes();
-
-      Object n = atts.getValue("Implementation-Title");
-      if (n != null) {
-        manifestApplicationName = n.toString();
-      }
-      Object v = atts.getValue("Implementation-Version");
-      if (v != null) {
-        manifestApplicationVersion = v.toString();
-      }
-    } catch (Exception e) {
-      // ignore error reading manifest
+  private static Resource springResource(
+      GrafanaProperties properties, String applicationName, Resource provided) {
+    String globalName =
+        properties.getGlobalAttributes().get(ResourceAttributes.SERVICE_NAME.getKey());
+    if (StringUtils.isNotBlank(globalName)) {
+      applicationName = globalName;
     }
 
-    updateResourceAttribute(
-        resourceAttributes,
-        ResourceAttributes.SERVICE_NAME,
-        applicationName,
-        manifestApplicationName);
-    updateResourceAttribute(
-        resourceAttributes, ResourceAttributes.SERVICE_VERSION, manifestApplicationVersion);
-
-    String hostName;
-    try {
-      hostName = InetAddress.getLocalHost().getHostName();
-    } catch (UnknownHostException e) {
-      hostName = System.getenv("HOSTNAME");
+    AttributesBuilder b = io.opentelemetry.api.common.Attributes.builder();
+    properties.getGlobalAttributes().forEach((k, v) -> b.put(AttributeKey.stringKey(k), v));
+    Resource spring = Resource.create(b.build());
+    Resource merged = spring.merge(provided);
+    if ("unknown_service:java".equals(provided.getAttribute(ResourceAttributes.SERVICE_NAME))
+        && StringUtils.isNotBlank(applicationName)) {
+      return merged.merge(
+          Resource.create(
+              io.opentelemetry.api.common.Attributes.of(
+                  ResourceAttributes.SERVICE_NAME, applicationName)));
     }
-    updateResourceAttribute(
-        resourceAttributes,
-        ResourceAttributes.SERVICE_INSTANCE_ID,
-        hostName,
-        System.getenv("HOST"));
-
-    resourceAttributes.put(DISTRIBUTION_NAME, "grafana-opentelemetry-starter");
-    resourceAttributes.put(DISTRIBUTION_VERSION, DistributionVersion.VERSION);
-    return resourceAttributes;
-  }
-
-  static void updateResourceAttribute(
-      Map<String, String> resourceAttributes, AttributeKey<String> key, String... overrides) {
-
-    if (!resourceAttributes.containsKey(key.getKey())) {
-      for (String value : overrides) {
-        if (Strings.isNotBlank(value)) {
-          resourceAttributes.put(key.getKey(), value);
-          return;
-        }
-      }
-    }
+    return merged;
   }
 }

@@ -20,6 +20,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mock-server:mockserver-spring-test-listener:5.15.0'
     testImplementation 'org.awaitility:awaitility:4.2.0'
+    testImplementation 'io.opentelemetry.proto:opentelemetry-proto:1.0.0-alpha'
 }
 
 test {

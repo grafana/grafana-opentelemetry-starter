@@ -1,0 +1,3 @@
+com.grafana.opentelemetry.resources.DistributionResourceProvider
+com.grafana.opentelemetry.resources.ServiceInstanceIdResourceProvider
+com.grafana.opentelemetry.resources.gcp.GCPResource

@@ -6,25 +6,31 @@ import java.util.concurrent.TimeUnit;
 
 class MetricsOtlpConfig implements OtlpConfig {
 
-  private final TranslatedProperties p;
+  private final Map<String, String> resourceAttributes;
+  private final ConnectionProperties connectionProperties;
 
-  public MetricsOtlpConfig(TranslatedProperties p) {
-    this.p = p;
+  public MetricsOtlpConfig(
+      Map<String, String> resourceAttributes, ConnectionProperties connectionProperties) {
+    this.resourceAttributes = resourceAttributes;
+    this.connectionProperties = connectionProperties;
   }
 
   @Override
   public Map<String, String> resourceAttributes() {
-    return p.getResourceAttributes();
+    return resourceAttributes;
   }
 
   @Override
   public String url() {
-    return p.getEndpoint().map(s -> s + "/v1/metrics").orElse(OtlpConfig.DEFAULT.url());
+    return connectionProperties
+        .getEndpoint()
+        .map(s -> s + "/v1/metrics")
+        .orElse(OtlpConfig.DEFAULT.url());
   }
 
   @Override
   public Map<String, String> headers() {
-    return p.getHeaders();
+    return connectionProperties.getHeaders();
   }
 
   @Override

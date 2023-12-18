@@ -23,30 +23,10 @@ public class GrafanaProperties {
    * <p>For <code>service.name</code> the order of precedence is:
    *
    * <ol>
-   *   <li>Manually set service_name in grafana.otlp.globalAttributes
+   *   <li>Manually set otel.service.name (not possible in spring properties)
+   *   <li>Manually set service.name in otel.resource.attributes (not possible in spring properties)
+   *   <li>Manually set service.name in grafana.otlp.globalAttributes
    *   <li>spring.application.name" in application.properties
-   *   <li>'Implementation-Title' in jar's MANIFEST.MF
-   * </ol>
-   *
-   * <p>The following block can be added to build.gradle to set the application name and version in
-   * the jar's MANIFEST.MF:
-   *
-   * <pre>
-   * bootJar {
-   *     manifest {
-   *         attributes('Implementation-Title':   'Demo Application',
-   *                    'Implementation-Version':  version)
-   *     }
-   * }
-   * </pre>
-   *
-   * The <code>service.instance.id</code> attribute will be set if any of the following return a
-   * value. The list is in order of precedence.
-   *
-   * <ol>
-   *   <li>InetAddress.getLocalHost().getHostName()
-   *   <li>environment variable HOSTNAME
-   *   <li>environment variable HOST
    * </ol>
    */
   private final Map<String, String> globalAttributes = new HashMap<>();

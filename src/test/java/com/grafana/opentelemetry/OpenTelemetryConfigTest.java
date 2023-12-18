@@ -1,6 +1,13 @@
 package com.grafana.opentelemetry;
 
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.semconv.ResourceAttributes;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
+import org.apache.logging.log4j.util.Strings;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -8,12 +15,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 @ExtendWith(OutputCaptureExtension.class)
 class OpenTelemetryConfigTest {
@@ -25,14 +26,26 @@ class OpenTelemetryConfigTest {
     if (explicit != null) {
       resourceAttributes.put(ResourceAttributes.SERVICE_NAME.getKey(), explicit);
     }
-    OpenTelemetryConfig.updateResourceAttribute(
-        resourceAttributes, ResourceAttributes.SERVICE_NAME, override);
+    updateResourceAttribute(resourceAttributes, ResourceAttributes.SERVICE_NAME, override);
 
     if (expected == null) {
       Assertions.assertThat(resourceAttributes).isEmpty();
     } else {
       Assertions.assertThat(resourceAttributes)
           .containsExactlyEntriesOf(Map.of(ResourceAttributes.SERVICE_NAME.getKey(), expected));
+    }
+  }
+
+  static void updateResourceAttribute(
+      Map<String, String> resourceAttributes, AttributeKey<String> key, String... overrides) {
+
+    if (!resourceAttributes.containsKey(key.getKey())) {
+      for (String value : overrides) {
+        if (Strings.isNotBlank(value)) {
+          resourceAttributes.put(key.getKey(), value);
+          return;
+        }
+      }
     }
   }
 
