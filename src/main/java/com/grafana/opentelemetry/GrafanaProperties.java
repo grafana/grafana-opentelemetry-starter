@@ -39,6 +39,13 @@ public class GrafanaProperties {
    */
   private boolean debugLogging;
 
+  /**
+   * Enable or disable the OpenTelemetry integration (default is enabled).
+   *
+   * <p>This can be used to disable the integration without removing the dependency.
+   */
+  private boolean enabled = true;
+
   public CloudProperties getCloud() {
     return cloud;
   }
@@ -61,6 +68,14 @@ public class GrafanaProperties {
 
   public void setDebugLogging(boolean debugLogging) {
     this.debugLogging = debugLogging;
+  }
+
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
   }
 
   public Map<String, String> getGlobalAttributes() {

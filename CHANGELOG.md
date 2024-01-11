@@ -3,10 +3,11 @@
 ## Version 3.2.0-beta.1 (2023-11-24)
                                                                                                        
 * TODO: more spring native
+* metrics uses the spring native metrics registry, which is mostly compatible with the OpenTelemetry metrics registry
+  * some properties are not supported, e.g. `otel.experimental.exporter.otlp.retry.enabled`
 * From now on, the version number of this starter will be the same as the version number of Spring Boot
 * Breaking changes: todo        
   * gRPC not supported anymore
-  * Environment variables starting with "OTEL_" are not supported anymore, because they will only affect the trace and log exporter
 * Application name and version are not read from MANIFEST.MF anymore, because this also wrongly reads information from dependencies
 * support OTEL_EXPORTER_OTLP_ENDPOINT in addition to grafana.otlp.onprem.endpoint
 

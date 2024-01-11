@@ -215,6 +215,12 @@ Log all metrics, traces, and logs that are created for debugging purposes (in ad
 
 This will also send metrics and traces to Loki as an unintended side effect.
 
+#### grafana.otlp.enabled
+
+Enable or disable the OpenTelemetry integration (default is enabled).
+
+This can be used to disable the integration without removing the dependency.
+
 #### grafana.otlp.cloud.zone
 
 The Zone can be found when you click on "Details" in the "Grafana" section on grafana.com.

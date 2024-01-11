@@ -65,7 +65,6 @@ public class OpenTelemetryConfig {
   @Bean
   public OtlpMeterRegistry openTelemetryMeterRegistry(
       Clock clock,
-      GrafanaProperties properties,
       Resource resource,
       ConnectionProperties connectionProperties) {
     return new OtlpMeterRegistry(
