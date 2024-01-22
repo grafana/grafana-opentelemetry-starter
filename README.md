@@ -199,7 +199,7 @@ For example, you can add `service.version` to make it easier to see if a new ver
 
 
 
-The attributes `service.name`, `service.version`, and <code> service.instance.id</code> are automatically detected as outlined below.
+The attributes `service.name`, `service.version`, and `service.instance.id` are automatically detected as outlined below.
 
 
 

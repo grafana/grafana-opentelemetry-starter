@@ -64,9 +64,7 @@ public class OpenTelemetryConfig {
 
   @Bean
   public OtlpMeterRegistry openTelemetryMeterRegistry(
-      Clock clock,
-      Resource resource,
-      ConnectionProperties connectionProperties) {
+      Clock clock, Resource resource, ConnectionProperties connectionProperties) {
     return new OtlpMeterRegistry(
         new MetricsOtlpConfig(
             getMap(resource, k -> !EXCLUDED_ATTRIBUTES.contains(k)), connectionProperties),
@@ -214,6 +212,7 @@ public class OpenTelemetryConfig {
         logger.warn("please specify grafana.otlp.cloud.zone");
       }
     }
+
     return Optional.empty();
   }
 

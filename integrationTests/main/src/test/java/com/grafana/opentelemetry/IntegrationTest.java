@@ -1,16 +1,8 @@
 package com.grafana.opentelemetry;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
+import io.micrometer.registry.otlp.OtlpMeterRegistry;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.junit.jupiter.api.Test;
@@ -21,6 +13,12 @@ import org.springframework.boot.test.autoconfigure.actuate.observability.AutoCon
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.test.context.TestPropertySource;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(
     classes = {HelloController.class, DemoApplication.class},
@@ -43,6 +41,8 @@ class IntegrationTest {
   @SuppressWarnings("unused")
   @Autowired
   private ConnectionProperties connectionProperties;
+
+  @Autowired private OtlpMeterRegistry meterRegistry;
 
   @Autowired private Optional<AutoConfiguredOpenTelemetrySdk> sdk;
 
@@ -74,20 +74,15 @@ class IntegrationTest {
             });
   }
 
-  private static List<Map.Entry<String, String>> getMetricsResourceAttributes()
+  private List<Map.Entry<String, String>> getMetricsResourceAttributes()
       throws IllegalAccessException {
-    CompositeMeterRegistry globalRegistry = Metrics.globalRegistry;
-    for (MeterRegistry registry : globalRegistry.getRegistries()) {
-      if (registry.getClass().getName().equals("io.micrometer.registry.otlp.OtlpMeterRegistry")) {
-        io.opentelemetry.proto.resource.v1.Resource resource =
-            (io.opentelemetry.proto.resource.v1.Resource)
-                FieldUtils.readField(registry, "resource", true);
 
-        return resource.getAttributesList().stream()
-            .map(a -> Map.entry(a.getKey(), a.getValue().getStringValue()))
-            .toList();
-      }
-    }
-    return Collections.emptyList();
+    io.opentelemetry.proto.resource.v1.Resource resource =
+        (io.opentelemetry.proto.resource.v1.Resource)
+            FieldUtils.readField(meterRegistry, "resource", true);
+
+    return resource.getAttributesList().stream()
+        .map(a -> Map.entry(a.getKey(), a.getValue().getStringValue()))
+        .toList();
   }
 }
