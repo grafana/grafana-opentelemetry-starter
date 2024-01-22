@@ -5,7 +5,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-class MetricsOtlpConfig implements OtlpConfig {
+public class MetricsOtlpConfig implements OtlpConfig {
 
   private final Map<String, String> resourceAttributes;
   private final ConnectionProperties connectionProperties;

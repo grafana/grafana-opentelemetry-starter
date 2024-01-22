@@ -15,10 +15,12 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdkBuilder;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.ResourceAttributes;
 import java.lang.reflect.Method;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,12 +65,16 @@ public class OpenTelemetryConfig {
   }
 
   @Bean
+  public MetricsOtlpConfig metricsOtlpConfig(
+      Resource resource, ConnectionProperties connectionProperties) {
+    return new MetricsOtlpConfig(
+        getMap(resource, k -> !EXCLUDED_ATTRIBUTES.contains(k)), connectionProperties);
+  }
+
+  @Bean
   public OtlpMeterRegistry openTelemetryMeterRegistry(
-      Clock clock, Resource resource, ConnectionProperties connectionProperties) {
-    return new OtlpMeterRegistry(
-        new MetricsOtlpConfig(
-            getMap(resource, k -> !EXCLUDED_ATTRIBUTES.contains(k)), connectionProperties),
-        clock);
+      Clock clock, MetricsOtlpConfig metricsOtlpConfig) {
+    return new OtlpMeterRegistry(metricsOtlpConfig, clock);
   }
 
   static Map<String, String> getMap(Resource resource, Predicate<String> filter) {
@@ -233,7 +239,42 @@ public class OpenTelemetryConfig {
       logger.warn("found grafana.otlp.cloud.instanceId but no grafana.otlp.cloud.apiKey");
     }
 
-    return Collections.emptyMap();
+    return otlpMetricHeaders();
+  }
+
+  /**
+   * copied from
+   * https://github.com/micrometer-metrics/micrometer/blob/8a2196cd30d301bfab9c2a69e212fe926fb2035d/implementations/micrometer-registry-otlp/src/main/java/io/micrometer/registry/otlp/OtlpConfig.java#L156-L182
+   *
+   * <p>Can be called directly once https://github.com/micrometer-metrics/micrometer/pull/4500 is
+   * merged
+   */
+  private static Map<String, String> otlpMetricHeaders() {
+    Map<String, String> env = System.getenv();
+    // common headers
+    String headersString = env.getOrDefault("OTEL_EXPORTER_OTLP_HEADERS", "").trim();
+    String metricsHeaders = env.getOrDefault("OTEL_EXPORTER_OTLP_METRICS_HEADERS", "").trim();
+    headersString =
+        Objects.equals(headersString, "") ? metricsHeaders : headersString + "," + metricsHeaders;
+    try {
+      // headers are encoded as URL - see
+      // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/exporter.md#specifying-headers-via-environment-variables
+      headersString = URLDecoder.decode(headersString, StandardCharsets.UTF_8);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Cannot decode header value: " + headersString, e);
+    }
+
+    String[] keyValues =
+        Objects.equals(headersString, "") ? new String[] {} : headersString.split(",");
+
+    return Arrays.stream(keyValues)
+        .map(String::trim)
+        .filter(keyValue -> keyValue.length() > 2 && keyValue.indexOf('=') > 0)
+        .collect(
+            Collectors.toMap(
+                keyValue -> keyValue.substring(0, keyValue.indexOf('=')).trim(),
+                keyValue -> keyValue.substring(keyValue.indexOf('=') + 1).trim(),
+                (l, r) -> r));
   }
 
   private static Resource springResource(

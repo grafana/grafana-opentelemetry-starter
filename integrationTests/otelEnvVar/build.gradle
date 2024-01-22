@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.0'
+    id 'io.spring.dependency-management' version '1.1.4'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    def otelVersion = dependencyManagement.importedProperties['opentelemetry.version']
+    //this dependency is not supposed to be exposed by the starter - so we add it here for testing purposes
+    implementation "io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion"
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation rootProject
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.junit-pioneer:junit-pioneer:2.2.0'
+    testImplementation 'io.micrometer:micrometer-registry-otlp'
+}
+
+test {
+    useJUnitPlatform()
+
+    jvmArgs += "--add-opens=java.base/java.util=ALL-UNNAMED"
+    jvmArgs += "--add-opens=java.base/java.lang=ALL-UNNAMED"
+}
