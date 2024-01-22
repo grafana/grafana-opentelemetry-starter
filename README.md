@@ -108,8 +108,7 @@ The telemetry data is then forwarded to Grafana Cloud or a Grafana OSS stack.
 > 💨 Skip this section and let the [OpenTelemetry Integration](https://grafana.com/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-opentelemetry/)
 > create everything for you.
 
-1. If the Grafana Agent is not running locally or doesn't use the default grpc endpoint,
-   adjust OTEL_EXPORTER_OTLP_ENDPOINT or OTEL_EXPORTER_OTLP_PROTOCOL (to `http/protobuf`).
+1. If the Grafana Agent is not running locally, adjust OTEL_EXPORTER_OTLP_ENDPOINT.
 2. Choose a **Service Name** to identify the service.
 3. Optionally, add attributes to filter data:
    - **deployment.environment**: Name of the deployment environment (`staging` or `production`)
@@ -120,7 +119,7 @@ The telemetry data is then forwarded to Grafana Cloud or a Grafana OSS stack.
 
 ```shell
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
-export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 export OTEL_SERVICE_NAME=<Service Name>
 export OTEL_RESOURCE_ATTRIBUTES=deployment.environment=<Environment>,service.namespace=<Namespace>,service.version=<Version>
 ```
