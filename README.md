@@ -1,5 +1,15 @@
 ## Overview
 
+> ⚠️ This project is archived and no longer maintained.
+> 
+> The Grafana OpenTelemetry Starter is deprecated and will not receive any further updates.
+> 
+> If you are looking for a way to get started with OpenTelemetry in Java for **Grafana Cloud** or Grafana OSS,  
+> please use the [Grafana OpenTelemetry Distribution for Java](https://github.com/grafana/grafana-opentelemetry-java).
+> 
+> If you are looking for an OpenTelemetry **Spring Boot starter**, please use the 
+> [OpenTelemetry Spring Boot Starter](https://opentelemetry.io/docs/zero-code/java/spring-boot-starter/).
+
 The grafana-opentelemetry-starter makes it easy to use Metrics, Traces, and Logs with OpenTelemetry
 in Grafana Cloud or the Grafana OSS stack.
 
